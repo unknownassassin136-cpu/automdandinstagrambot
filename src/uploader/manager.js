@@ -119,7 +119,31 @@ class UploadManager {
         `☁️ Uploading to channel...\n${title}`
       );
 
-      await this.bot.api.sendVideo(CHANNEL_ID, new InputFile(filePath), {
+      const fileStats = fs.statSync(filePath);
+      const totalUploadSize = fileStats.size;
+      let uploadedBytes = 0;
+      let lastUploadUpdate = Date.now();
+
+      // Create a readable stream that tracks progress as Telegram reads it
+      const readStream = fs.createReadStream(filePath);
+      readStream.on("data", async (chunk) => {
+        uploadedBytes += chunk.length;
+        if (Date.now() - lastUploadUpdate > 10000 && totalUploadSize > 0) {
+          const progress = ((uploadedBytes / totalUploadSize) * 100).toFixed(1);
+          try {
+            await this.bot.api.editMessageText(
+              chatId,
+              statusMessageId,
+              `☁️ Uploading: ${progress}%\n${title}`
+            );
+          } catch (e) {
+            // ignore flood errors silently
+          }
+          lastUploadUpdate = Date.now();
+        }
+      });
+
+      await this.bot.api.sendVideo(CHANNEL_ID, new InputFile(readStream, `${title}.mp4`), {
         caption: `${title}\n\n[Original Link](${url})`,
         parse_mode: "Markdown",
         supports_streaming: true,
