@@ -1,0 +1,6 @@
+node_modules
+temp_downloads
+database/*.db
+.env
+.git
+*.md
