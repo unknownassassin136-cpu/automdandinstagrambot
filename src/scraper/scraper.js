@@ -1,4 +1,7 @@
-const { chromium } = require("playwright");
+const { chromium } = require("playwright-extra");
+const stealth = require("puppeteer-extra-plugin-stealth")();
+chromium.use(stealth);
+
 const { BASE_URL, HEADLESS } = require("../../config");
 
 let browser = null;
@@ -11,7 +14,7 @@ const CACHE_TTL = 3600 * 1000; // 1 hour in ms
 
 async function initBrowser() {
   if (!browser) {
-    console.log("🚀 Starting Playwright Browser...");
+    console.log("🚀 Starting Playwright Browser with Stealth...");
     browser = await chromium.launch({
       headless: HEADLESS,
       args: [
@@ -22,7 +25,7 @@ async function initBrowser() {
         "--disable-dev-shm-usage",
         "--disable-web-security",
         "--disable-accelerated-2d-canvas",
-        "--disable-gpu"
+        "--disable-gpu",
       ]
     });
     context = await browser.newContext({
@@ -30,12 +33,6 @@ async function initBrowser() {
       viewport: { width: 1920, height: 1080 },
       javaScriptEnabled: true,
       bypassCSP: true
-    });
-
-    await context.addInitScript(() => {
-      Object.defineProperty(navigator, 'webdriver', { get: () => false });
-      Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
-      Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
     });
   }
   return context;
@@ -195,15 +192,6 @@ async function getVideos(categoryUrl, pageNum = 1) {
 async function getVideoDownloadUrl(videoUrl) {
   const ctx = await initBrowser();
   const page = await ctx.newPage();
-
-  // Block resources
-  await page.route("**/*", (route) => {
-    if (["image", "stylesheet", "font", "media"].includes(route.request().resourceType())) {
-      route.abort();
-    } else {
-      route.continue();
-    }
-  });
 
   try {
     await page.goto(videoUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
