@@ -1,42 +1,22 @@
-const { chromium } = require("playwright-extra");
-const stealth = require("puppeteer-extra-plugin-stealth")();
-chromium.use(stealth);
-
-const { BASE_URL, HEADLESS } = require("../../config");
-
-let browser = null;
-let context = null;
+const axios = require("axios");
+const cheerio = require("cheerio");
+const { BASE_URL } = require("../../config");
 
 // Categories cache
 let categoriesCache = [];
 let categoriesCacheTime = 0;
 const CACHE_TTL = 3600 * 1000; // 1 hour in ms
 
-async function initBrowser() {
-  if (!browser) {
-    console.log("🚀 Starting Playwright Browser with Stealth...");
-    browser = await chromium.launch({
-      headless: HEADLESS,
-      args: [
-        "--disable-blink-features=AutomationControlled",
-        "--disable-features=IsolateOrigins,site-per-process",
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-web-security",
-        "--disable-accelerated-2d-canvas",
-        "--disable-gpu",
-      ]
-    });
-    context = await browser.newContext({
-      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      viewport: { width: 1920, height: 1080 },
-      javaScriptEnabled: true,
-      bypassCSP: true
-    });
+const AXIOS_CONFIG = {
+  timeout: 30000,
+  headers: {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+    "Connection": "keep-alive",
+    "Upgrade-Insecure-Requests": "1"
   }
-  return context;
-}
+};
 
 /**
  * Scrape categories from the homepage.
@@ -46,72 +26,62 @@ async function getCategories() {
     return categoriesCache;
   }
 
-  const ctx = await initBrowser();
-  const page = await ctx.newPage();
-
   try {
-    await page.goto(BASE_URL, { waitUntil: "domcontentloaded", timeout: 30000 });
+    const response = await axios.get(BASE_URL, AXIOS_CONFIG);
+    const $ = cheerio.load(response.data);
     
-    // Evaluate script on the page directly just like Python did
-    const categories = await page.evaluate((baseUrl) => {
-      const ignoreTexts = new Set([
-        "log in", "sign up", "upload", "language", "content", "straight",
-        "gay", "top", "a - z", "best of", "hits", "tags", "pictures",
-        "live cams", "sex stories", "forum", "pornstars", "games",
-        "dating", "history", "suggestions", "clear your history", "disable it",
-        "create account", "sign in", "gold", "more... (full list)", 
-        "remove ads - upgrade to premium", "trafficfactory", "xnxx images",
-        "animated gifs", "stories", "think about bookmarking our site!",
-        "please use our forum", "contact us", "webmasters click here",
-        "terms of service", "privacy policy", "privacy notice", 
-        "cookie preferences", "content removal"
-      ]);
+    const ignoreTexts = new Set([
+      "log in", "sign up", "upload", "language", "content", "straight",
+      "gay", "top", "a - z", "best of", "hits", "tags", "pictures",
+      "live cams", "sex stories", "forum", "pornstars", "games",
+      "dating", "history", "suggestions", "clear your history", "disable it",
+      "create account", "sign in", "gold", "more... (full list)", 
+      "remove ads - upgrade to premium", "trafficfactory", "xnxx images",
+      "animated gifs", "stories", "think about bookmarking our site!",
+      "please use our forum", "contact us", "webmasters click here",
+      "terms of service", "privacy policy", "privacy notice", 
+      "cookie preferences", "content removal"
+    ]);
 
-      const seen = new Set();
-      const results = [];
-      const links = document.querySelectorAll("a");
+    const seen = new Set();
+    const results = [];
 
-      links.forEach((el) => {
-        const href = el.getAttribute("href");
-        const text = el.innerText.trim();
+    $("a").each((i, el) => {
+      const href = $(el).attr("href");
+      const text = $(el).text().trim();
 
-        if (!href || text.length <= 2 || text.length >= 30) return;
-        if (href.includes("/video-") || href.includes("/profile/")) return;
+      if (!href || text.length <= 2 || text.length >= 30) return;
+      if (href.includes("/video-") || href.includes("/profile/")) return;
 
-        const lower = text.toLowerCase();
-        if (ignoreTexts.has(lower)) return;
-        if (lower.includes("xnxx")) return;
-        if (/^[\d,.]+$/.test(text)) return;
-        if (seen.has(text)) return;
+      const lower = text.toLowerCase();
+      if (ignoreTexts.has(lower)) return;
+      if (lower.includes("xnxx")) return;
+      if (/^[\d,.]+$/.test(text)) return;
+      if (seen.has(text)) return;
 
-        const fullUrl = href.startsWith("http") ? href : `${baseUrl}${href}`;
-        results.push({ name: text, url: fullUrl });
-        seen.add(text);
-      });
+      const fullUrl = href.startsWith("http") ? href : `${BASE_URL}${href}`;
+      results.push({ name: text, url: fullUrl });
+      seen.add(text);
+    });
 
-      return results.sort((a, b) => a.name.localeCompare(b.name));
-    }, BASE_URL);
+    const finalCategories = results.sort((a, b) => a.name.localeCompare(b.name));
 
-    // Fallback
-    if (!categories || categories.length < 5) {
-      return [
-        { name: "Hot", url: `${BASE_URL}/search/hot` },
-        { name: "New", url: `${BASE_URL}/search/new` },
-        { name: "Hardcore", url: `${BASE_URL}/search/hardcore` },
-        { name: "Asian", url: `${BASE_URL}/search/asian` }
-      ];
+    if (finalCategories.length >= 5) {
+      categoriesCache = finalCategories;
+      categoriesCacheTime = Date.now();
+      return finalCategories;
     }
-
-    categoriesCache = categories;
-    categoriesCacheTime = Date.now();
-    return categories;
-
   } catch (err) {
     console.error("Error fetching categories:", err.message);
-    return [];
-  } finally {
-    await page.close();
   }
+
+  // Fallback
+  return [
+    { name: "Hot", url: `${BASE_URL}/search/hot` },
+    { name: "New", url: `${BASE_URL}/search/new` },
+    { name: "Hardcore", url: `${BASE_URL}/search/hardcore` },
+    { name: "Asian", url: `${BASE_URL}/search/asian` }
+  ];
 }
 
 /**
@@ -125,139 +95,122 @@ async function getVideos(categoryUrl, pageNum = 1) {
       : `${categoryUrl}/${pageNum}`;
   }
 
-  const ctx = await initBrowser();
-  const page = await ctx.newPage();
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const response = await axios.get(paginatedUrl, AXIOS_CONFIG);
+      const $ = cheerio.load(response.data);
+      
+      const results = [];
+      const seen = new Set();
+      
+      $("a[href*='/video-']").each((i, el) => {
+        const href = $(el).attr("href");
+        if (!href || seen.has(href)) return;
 
-  try {
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        await page.goto(paginatedUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
-        
-        const videos = await page.evaluate((baseUrl) => {
-          const results = [];
-          const seen = new Set();
-          
-          const links = document.querySelectorAll("a[href*='/video-']");
-          links.forEach((el) => {
-            const href = el.getAttribute("href");
-            if (!href || seen.has(href)) return;
+        let title = $(el).attr("title") || $(el).text().trim();
+        if (!title || title.length < 3) {
+          const parent = $(el).closest("div[id^='video_'], .thumb-block, .thumb");
+          if (parent.length) {
+            const p = parent.find("p, .title");
+            if (p.length) title = p.text().trim();
+          }
+        }
 
-            let title = el.getAttribute("title") || el.innerText.trim();
-            if (!title || title.length < 3) {
-              const parent = el.closest("div[id^='video_'], .thumb-block, .thumb");
-              if (parent) {
-                const p = parent.querySelector("p, .title");
-                if (p) title = p.innerText.trim();
-              }
-            }
+        let thumb = "";
+        let img = $(el).find("img");
+        if (!img.length) {
+          const parent = $(el).closest("div[id^='video_'], .thumb-block, .thumb");
+          if (parent.length) img = parent.find("img");
+        }
+        if (img.length) {
+          thumb = img.attr("data-src") || img.attr("src") || "";
+        }
 
-            let thumb = "";
-            let img = el.querySelector("img");
-            if (!img) {
-              const parent = el.closest("div[id^='video_'], .thumb-block, .thumb");
-              if (parent) img = parent.querySelector("img");
-            }
-            if (img) {
-              thumb = img.getAttribute("data-src") || img.getAttribute("src") || "";
-            }
+        const fullUrl = href.startsWith("http") ? href : `${BASE_URL}${href}`;
 
-            const fullUrl = href.startsWith("http") ? href : `${baseUrl}${href}`;
+        if (title && title.length > 5 && !title.toLowerCase().includes("gold")) {
+          const truncTitle = title.length > 60 ? title.substring(0, 60) + "..." : title;
+          results.push({ title: truncTitle, url: fullUrl, thumbnail: thumb });
+          seen.add(href);
+        }
+      });
 
-            if (title && title.length > 5 && !title.toLowerCase().includes("gold")) {
-              const truncTitle = title.length > 60 ? title.substring(0, 60) + "..." : title;
-              results.push({ title: truncTitle, url: fullUrl, thumbnail: thumb });
-              seen.add(href);
-            }
-          });
+      if (results.length > 0) return results;
 
-          return results;
-        }, BASE_URL);
-
-        if (videos.length > 0) return videos;
-
-      } catch (e) {
-        console.error(`Attempt ${attempt + 1} failed:`, e.message);
-        await new Promise(r => setTimeout(r, 2000));
-      }
+    } catch (e) {
+      console.error(`Attempt ${attempt + 1} failed:`, e.message);
+      await new Promise(r => setTimeout(r, 2000));
     }
-    return [];
-  } finally {
-    await page.close();
   }
+  return [];
 }
 
 /**
  * Extract the direct MP4 download link from the video page.
  */
 async function getVideoDownloadUrl(videoUrl) {
-  const ctx = await initBrowser();
-  const page = await ctx.newPage();
-
   try {
-    await page.goto(videoUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+    const response = await axios.get(videoUrl, AXIOS_CONFIG);
+    const html = response.data;
 
-    const downloadUrls = await page.evaluate(() => {
-      let highUrl = null;
-      let lowUrl = null;
+    let highUrl = null;
+    let lowUrl = null;
 
-      // Method 1: regex on script content
-      const scripts = document.querySelectorAll("script");
-      for (const script of scripts) {
-        const text = script.innerText;
-        if (!text) continue;
+    // Method 1: regex on script content
+    const matchHigh = html.match(/setVideoUrlHigh\('([^']+)'\)/);
+    if (matchHigh) highUrl = matchHigh[1];
 
-        const matchHigh = text.match(/setVideoUrlHigh\('([^']+)'\)/);
-        if (matchHigh) highUrl = matchHigh[1];
+    const matchLow = html.match(/setVideoUrlLow\('([^']+)'\)/);
+    if (matchLow) lowUrl = matchLow[1];
 
-        const matchLow = text.match(/setVideoUrlLow\('([^']+)'\)/);
-        if (matchLow) lowUrl = matchLow[1];
+    if (highUrl || lowUrl) {
+      return { high: highUrl, low: lowUrl || highUrl };
+    }
+
+    // Method 2: .mp4 links (fallback)
+    const $ = cheerio.load(html);
+    let fallbackHref = null;
+    $("a").each((i, el) => {
+      const href = $(el).attr("href");
+      if (href && href.includes(".mp4")) {
+        fallbackHref = href;
+        return false; // break
       }
-
-      if (highUrl || lowUrl) {
-        return { high: highUrl, low: lowUrl || highUrl };
-      }
-
-      // Method 2: .mp4 links
-      const links = document.querySelectorAll("a");
-      for (const el of links) {
-        const href = el.getAttribute("href");
-        if (href && href.includes(".mp4")) {
-          return { high: href, low: href };
-        }
-      }
-
-      // Method 3: Video src
-      const video = document.querySelector("video");
-      if (video) {
-        const src = video.getAttribute("src");
-        if (src && !src.startsWith("blob:")) return { high: src, low: src };
-        
-        const source = video.querySelector("source");
-        if (source) {
-          const ssrc = source.getAttribute("src");
-          if (ssrc && !ssrc.startsWith("blob:")) return { high: ssrc, low: ssrc };
-        }
-      }
-
-      return null;
     });
+    
+    if (fallbackHref) {
+      return { high: fallbackHref, low: fallbackHref };
+    }
 
-    return downloadUrls;
+    // Method 3: Video src
+    let fallbackSrc = null;
+    const video = $("video");
+    if (video.length) {
+      const src = video.attr("src");
+      if (src && !src.startsWith("blob:")) fallbackSrc = src;
+      else {
+        const source = video.find("source");
+        if (source.length) {
+          const ssrc = source.attr("src");
+          if (ssrc && !ssrc.startsWith("blob:")) fallbackSrc = ssrc;
+        }
+      }
+    }
+    
+    if (fallbackSrc) {
+      return { high: fallbackSrc, low: fallbackSrc };
+    }
+
+    return null;
 
   } catch (err) {
     console.error("Error getting download URL:", err.message);
     return null;
-  } finally {
-    await page.close();
   }
 }
 
-function closeBrowser() {
-  if (browser) {
-    browser.close();
-    browser = null;
-    context = null;
-  }
-}
+// Dummy functions since we don't need a browser anymore
+function closeBrowser() {}
+async function initBrowser() {}
 
 module.exports = { getCategories, getVideos, getVideoDownloadUrl, closeBrowser, initBrowser };
