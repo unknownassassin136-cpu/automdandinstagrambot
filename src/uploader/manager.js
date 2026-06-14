@@ -203,15 +203,14 @@ class UploadManager {
 
     let downloaded = 0;
     let lastUpdate = Date.now();
-
     const writer = fs.createWriteStream(filePath);
 
     return new Promise((resolve, reject) => {
       response.data.on("data", async (chunk) => {
         downloaded += chunk.length;
 
-        // Update progress every 2 seconds
-        if (Date.now() - lastUpdate > 2000 && totalSize > 0) {
+        // Update progress every 10 seconds to avoid Telegram rate limits
+        if (Date.now() - lastUpdate > 10000 && totalSize > 0) {
           const progress = ((downloaded / totalSize) * 100).toFixed(1);
           try {
             await this.bot.api.editMessageText(
@@ -220,7 +219,7 @@ class UploadManager {
               `⬇️ Downloading: ${progress}%\n${title}`
             );
           } catch (e) {
-            // ignore flood errors
+            // ignore flood errors silently
           }
           lastUpdate = Date.now();
         }
