@@ -124,7 +124,8 @@ async function runAutomation(comment_id, sender_id, templateName) {
         |--------------------------------------------------------------------------
         */
 
-        const replyUrl = `https://graph.instagram.com/v21.0/${comment_id}/replies`;
+        // const replyUrl = `https://graph.instagram.com/v21.0/${comment_id}/replies`;
+        const replyUrl = `https://graph.facebook.com/v21.0/${comment_id}/replies`;
 
         await axios.post(replyUrl, {
             message: "Hey there! Details sent to your DM 📩"
