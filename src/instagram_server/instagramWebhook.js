@@ -140,7 +140,8 @@ async function runAutomation(comment_id, sender_id, templateName) {
         |--------------------------------------------------------------------------
         */
 
-        const dmUrl = `https://graph.instagram.com/v21.0/me/messages`;
+        // const dmUrl = `https://graph.instagram.com/v21.0/me/messages`;
+        const dmUrl = `https://graph.facebook.com/v21.0/me/messages`;
 
         const message = messageTemplates[templateName];
 
