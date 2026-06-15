@@ -70,12 +70,34 @@ app.use((err, req, res, next) => {
 */
 
 function startServer() {
-    return app.listen(PORT, () => {
+    const server = app.listen(PORT, async () => {
         console.log('----------------------------------');
         console.log(`🚀 Instagram Server running on port ${PORT}`);
         console.log(`📡 Webhook endpoint: /webhook/instagram`);
         console.log('----------------------------------');
+
+        // Check if ngrok configuration is provided
+        const authtoken = process.env.NGROK_AUTHTOKEN;
+        const domain = process.env.NGROK_DOMAIN;
+
+        if (authtoken && domain) {
+            try {
+                console.log('🔄 Starting secure ngrok tunnel...');
+                const ngrok = require('@ngrok/ngrok');
+                const listener = await ngrok.forward({
+                    addr: PORT,
+                    authtoken: authtoken,
+                    domain: domain
+                });
+                console.log(`🌐 Secure Tunnel established!`);
+                console.log(`🔗 Callback URL: ${listener.url()}/webhook/instagram`);
+                console.log('----------------------------------');
+            } catch (err) {
+                console.error('❌ Failed to start ngrok tunnel:', err.message);
+            }
+        }
     });
+    return server;
 }
 
 module.exports = { startServer, app };
