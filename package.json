@@ -1,7 +1,7 @@
 {
-  "name": "automd-bot",
+  "name": "instagram-webhook-server",
   "version": "1.0.0",
-  "description": "Auto Media Downloader Telegram Bot",
+  "description": "Instagram Comment & DM Automation Webhook Server",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -10,11 +10,7 @@
   "dependencies": {
     "@ngrok/ngrok": "^1.7.0",
     "axios": "^1.18.0",
-    "cheerio": "^1.2.0",
     "dotenv": "^16.4.0",
-    "express": "^5.2.1",
-    "got-scraping": "^4.2.1",
-    "grammy": "^1.31.0",
-    "sql.js": "^1.11.0"
+    "express": "^5.2.1"
   }
 }
