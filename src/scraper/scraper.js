@@ -1,4 +1,6 @@
 const cheerio = require("cheerio");
+const axios = require("axios");
+const https = require("https");
 const { BASE_URL } = require("../../config");
 
 // Categories cache
@@ -6,15 +8,39 @@ let categoriesCache = [];
 let categoriesCacheTime = 0;
 const CACHE_TTL = 3600 * 1000; // 1 hour in ms
 
-const FETCH_OPTIONS = {
+const httpsAgent = new https.Agent({
+  keepAlive: true,
+  rejectUnauthorized: false
+});
+
+const AXIOS_OPTIONS = {
+  httpsAgent,
   headers: {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.5",
     "Connection": "keep-alive",
     "Upgrade-Insecure-Requests": "1"
-  }
+  },
+  timeout: 15000
 };
+
+/**
+ * Fetch HTML with retries to bypass aggressive ECONNRESET / rate limiting.
+ */
+async function fetchHtmlWithRetry(url, maxRetries = 5) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await axios.get(url, AXIOS_OPTIONS);
+      return response.data;
+    } catch (err) {
+      console.error(`Attempt ${attempt + 1} failed for ${url}: ${err.message}`);
+      if (attempt === maxRetries - 1) throw err;
+      // Exponential backoff
+      await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
+    }
+  }
+}
 
 /**
  * Scrape categories from the homepage.
@@ -25,8 +51,7 @@ async function getCategories() {
   }
 
   try {
-    const response = await fetch(BASE_URL, FETCH_OPTIONS);
-    const html = await response.text();
+    const html = await fetchHtmlWithRetry(BASE_URL, 3);
     const $ = cheerio.load(html);
     
     const ignoreTexts = new Set([
@@ -119,54 +144,51 @@ async function getVideos(categoryUrl, pageNum = 1) {
       : `${categoryUrl}/${pageNum}`;
   }
 
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      const response = await fetch(paginatedUrl, FETCH_OPTIONS);
-      const html = await response.text();
-      const $ = cheerio.load(html);
-      
-      const results = [];
-      const seen = new Set();
-      
-      $("a[href*='/video-']").each((i, el) => {
-        const href = $(el).attr("href");
-        if (!href || seen.has(href)) return;
+  try {
+    const html = await fetchHtmlWithRetry(paginatedUrl, 5);
+    const $ = cheerio.load(html);
+    
+    const results = [];
+    const seen = new Set();
+    
+    $("a[href*='/video-']").each((i, el) => {
+      const href = $(el).attr("href");
+      if (!href || seen.has(href)) return;
 
-        let title = $(el).attr("title") || $(el).text().trim();
-        if (!title || title.length < 3) {
-          const parent = $(el).closest("div[id^='video_'], .thumb-block, .thumb");
-          if (parent.length) {
-            const p = parent.find("p, .title");
-            if (p.length) title = p.text().trim();
-          }
+      let title = $(el).attr("title") || $(el).text().trim();
+      if (!title || title.length < 3) {
+        const parent = $(el).closest("div[id^='video_'], .thumb-block, .thumb");
+        if (parent.length) {
+          const p = parent.find("p, .title");
+          if (p.length) title = p.text().trim();
         }
+      }
 
-        let thumb = "";
-        let img = $(el).find("img");
-        if (!img.length) {
-          const parent = $(el).closest("div[id^='video_'], .thumb-block, .thumb");
-          if (parent.length) img = parent.find("img");
-        }
-        if (img.length) {
-          thumb = img.attr("data-src") || img.attr("src") || "";
-        }
+      let thumb = "";
+      let img = $(el).find("img");
+      if (!img.length) {
+        const parent = $(el).closest("div[id^='video_'], .thumb-block, .thumb");
+        if (parent.length) img = parent.find("img");
+      }
+      if (img.length) {
+        thumb = img.attr("data-src") || img.attr("src") || "";
+      }
 
-        const fullUrl = href.startsWith("http") ? href : `${BASE_URL}${href}`;
+      const fullUrl = href.startsWith("http") ? href : `${BASE_URL}${href}`;
 
-        if (title && title.length > 5 && !title.toLowerCase().includes("gold")) {
-          const truncTitle = title.length > 60 ? title.substring(0, 60) + "..." : title;
-          results.push({ title: truncTitle, url: fullUrl, thumbnail: thumb });
-          seen.add(href);
-        }
-      });
+      if (title && title.length > 5 && !title.toLowerCase().includes("gold")) {
+        const truncTitle = title.length > 60 ? title.substring(0, 60) + "..." : title;
+        results.push({ title: truncTitle, url: fullUrl, thumbnail: thumb });
+        seen.add(href);
+      }
+    });
 
-      if (results.length > 0) return results;
+    if (results.length > 0) return results;
 
-    } catch (e) {
-      console.error(`Attempt ${attempt + 1} failed:`, e.message);
-      await new Promise(r => setTimeout(r, 2000));
-    }
+  } catch (e) {
+    console.error("Failed to fetch videos after retries:", e.message);
   }
+  
   return [];
 }
 
@@ -175,8 +197,7 @@ async function getVideos(categoryUrl, pageNum = 1) {
  */
 async function getVideoDownloadUrl(videoUrl) {
   try {
-    const response = await fetch(videoUrl, FETCH_OPTIONS);
-    const html = await response.text();
+    const html = await fetchHtmlWithRetry(videoUrl, 5);
 
     let highUrl = null;
     let lowUrl = null;
