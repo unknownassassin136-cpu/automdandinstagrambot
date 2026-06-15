@@ -13,7 +13,7 @@ const ADMIN_IDS = (process.env.ADMIN_IDS || "")
 
 const DB_PATH = path.join(__dirname, "database", "bot.db");
 const TEMP_DIR = path.join(__dirname, "temp_downloads");
-const NUM_WORKERS = 5;
+const NUM_WORKERS = 1;
 const HEADLESS = (process.env.HEADLESS || "True").toLowerCase() === "true";
 
 module.exports = {

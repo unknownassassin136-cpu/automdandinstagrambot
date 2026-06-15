@@ -1,4 +1,3 @@
-const axios = require("axios");
 const cheerio = require("cheerio");
 const { BASE_URL } = require("../../config");
 
@@ -7,8 +6,7 @@ let categoriesCache = [];
 let categoriesCacheTime = 0;
 const CACHE_TTL = 3600 * 1000; // 1 hour in ms
 
-const AXIOS_CONFIG = {
-  timeout: 30000,
+const FETCH_OPTIONS = {
   headers: {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
@@ -27,8 +25,9 @@ async function getCategories() {
   }
 
   try {
-    const response = await axios.get(BASE_URL, AXIOS_CONFIG);
-    const $ = cheerio.load(response.data);
+    const response = await fetch(BASE_URL, FETCH_OPTIONS);
+    const html = await response.text();
+    const $ = cheerio.load(html);
     
     const ignoreTexts = new Set([
       "log in", "sign up", "upload", "language", "content", "straight",
@@ -75,12 +74,37 @@ async function getCategories() {
     console.error("Error fetching categories:", err.message);
   }
 
-  // Fallback
+  // Fallback if scraping fails
   return [
     { name: "Hot", url: `${BASE_URL}/search/hot` },
     { name: "New", url: `${BASE_URL}/search/new` },
     { name: "Hardcore", url: `${BASE_URL}/search/hardcore` },
-    { name: "Asian", url: `${BASE_URL}/search/asian` }
+    { name: "Asian", url: `${BASE_URL}/search/asian` },
+    { name: "Anal", url: `${BASE_URL}/search/anal` },
+    { name: "Teen", url: `${BASE_URL}/search/teen` },
+    { name: "MILF", url: `${BASE_URL}/search/milf` },
+    { name: "Mature", url: `${BASE_URL}/search/mature` },
+    { name: "POV", url: `${BASE_URL}/search/pov` },
+    { name: "Gay", url: `${BASE_URL}/search/gay` },
+    { name: "Lesbian", url: `${BASE_URL}/search/lesbian` },
+    { name: "BBW", url: `${BASE_URL}/search/bbw` },
+    { name: "Ebony", url: `${BASE_URL}/search/ebony` },
+    { name: "Indian", url: `${BASE_URL}/search/indian` },
+    { name: "Latina", url: `${BASE_URL}/search/latina` },
+    { name: "Vintage", url: `${BASE_URL}/search/vintage` },
+    { name: "Massage", url: `${BASE_URL}/search/massage` },
+    { name: "Cuckold", url: `${BASE_URL}/search/cuckold` },
+    { name: "Creampie", url: `${BASE_URL}/search/creampie` },
+    { name: "Squirt", url: `${BASE_URL}/search/squirt` },
+    { name: "BDSM", url: `${BASE_URL}/search/bdsm` },
+    { name: "Hentai", url: `${BASE_URL}/search/hentai` },
+    { name: "Compilation", url: `${BASE_URL}/search/compilation` },
+    { name: "Public", url: `${BASE_URL}/search/public` },
+    { name: "Big Tits", url: `${BASE_URL}/search/big+tits` },
+    { name: "Big Ass", url: `${BASE_URL}/search/big+ass` },
+    { name: "Threesome", url: `${BASE_URL}/search/threesome` },
+    { name: "Shemale", url: `${BASE_URL}/search/shemale` },
+    { name: "Amateur", url: `${BASE_URL}/search/amateur` }
   ];
 }
 
@@ -97,8 +121,9 @@ async function getVideos(categoryUrl, pageNum = 1) {
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const response = await axios.get(paginatedUrl, AXIOS_CONFIG);
-      const $ = cheerio.load(response.data);
+      const response = await fetch(paginatedUrl, FETCH_OPTIONS);
+      const html = await response.text();
+      const $ = cheerio.load(html);
       
       const results = [];
       const seen = new Set();
@@ -150,8 +175,8 @@ async function getVideos(categoryUrl, pageNum = 1) {
  */
 async function getVideoDownloadUrl(videoUrl) {
   try {
-    const response = await axios.get(videoUrl, AXIOS_CONFIG);
-    const html = response.data;
+    const response = await fetch(videoUrl, FETCH_OPTIONS);
+    const html = await response.text();
 
     let highUrl = null;
     let lowUrl = null;
