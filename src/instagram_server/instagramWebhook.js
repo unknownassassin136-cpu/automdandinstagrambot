@@ -151,7 +151,7 @@ async function runAutomation(comment_id, sender_id, templateName) {
 
         await axios.post(dmUrl, {
             recipient: {
-                id: sender_id
+                comment_id: comment_id
             },
             message: {
                 text: message
@@ -160,7 +160,7 @@ async function runAutomation(comment_id, sender_id, templateName) {
             headers: { Authorization: `Bearer ${accessToken}` }
         });
 
-        console.log(`📨 DM sent to ${sender_id}`);
+        console.log(`📨 Private DM reply sent for comment ${comment_id}`);
 
     } catch (error) {
 
