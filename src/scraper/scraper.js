@@ -35,7 +35,9 @@ async function fetchHtmlWithRetry(url, maxRetries = 5) {
       return response.data;
     } catch (err) {
       // Mask the explicit parts of the URL for privacy in logs
-      const maskedUrl = url.replace(/\/video-[^\/]+\/([^\/]+)/, '/video-***/***');
+      const maskedUrl = url
+        .replace(/xnxx\.com/ig, '***.com')
+        .replace(/\/video-[^\/]+\/([^\/]+)/, '/video-***/***');
       console.error(`Attempt ${attempt + 1} failed for ${maskedUrl}: ${err.message}`);
       if (attempt === maxRetries - 1) throw err;
       // Exponential backoff
