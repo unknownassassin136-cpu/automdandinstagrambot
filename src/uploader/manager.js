@@ -177,7 +177,9 @@ class UploadManager {
             { reply_markup: kb }
           );
         } catch (reorderErr) {
-          console.log("Could not reorder messages:", reorderErr.message);
+          if (!reorderErr.message.includes("message to delete not found")) {
+            console.log("Could not reorder messages:", reorderErr.message);
+          }
         }
       }
 

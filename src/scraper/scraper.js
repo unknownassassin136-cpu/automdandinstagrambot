@@ -34,7 +34,9 @@ async function fetchHtmlWithRetry(url, maxRetries = 5) {
       const response = await axios.get(url, AXIOS_OPTIONS);
       return response.data;
     } catch (err) {
-      console.error(`Attempt ${attempt + 1} failed for ${url}: ${err.message}`);
+      // Mask the explicit parts of the URL for privacy in logs
+      const maskedUrl = url.replace(/\/video-[^\/]+\/([^\/]+)/, '/video-***/***');
+      console.error(`Attempt ${attempt + 1} failed for ${maskedUrl}: ${err.message}`);
       if (attempt === maxRetries - 1) throw err;
       // Exponential backoff
       await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
