@@ -3,6 +3,4 @@ temp_downloads/
 database/*.db
 .env
 
-dist/
 .angular/
-

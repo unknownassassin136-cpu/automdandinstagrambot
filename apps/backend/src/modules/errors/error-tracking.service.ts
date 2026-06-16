@@ -13,10 +13,9 @@ export class ErrorTrackingService {
       // Log to database audit_logs for persistence
       await db.insert(auditLogs).values({
         userId,
-        actionType: 'system_error',
-        resourceType: 'system',
-        resourceId: context.resourceId || 'unknown',
-        details: {
+        action: 'system_error',
+        entityType: 'system',
+        metadata: {
           message: error.message,
           stack: error.stack,
           context,
