@@ -54,6 +54,9 @@ const envSchema = zod_1.z.object({
     META_VERIFY_TOKEN: zod_1.z.string().min(1, 'META_VERIFY_TOKEN is required'),
     // Encryption
     ENCRYPTION_KEY: zod_1.z.string().min(32, 'ENCRYPTION_KEY must be at least 32 bytes'),
+    // Ngrok
+    NGROK_AUTHTOKEN: zod_1.z.string().optional(),
+    NGROK_DOMAIN: zod_1.z.string().optional(),
     // Google OAuth
     GOOGLE_CLIENT_ID: zod_1.z.string().min(1, 'GOOGLE_CLIENT_ID is required'),
     GOOGLE_CLIENT_SECRET: zod_1.z.string().min(1, 'GOOGLE_CLIENT_SECRET is required'),

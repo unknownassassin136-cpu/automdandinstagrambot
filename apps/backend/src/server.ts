@@ -4,6 +4,7 @@ import { initDatabase } from './database/db';
 import { initRedis } from './config/redis';
 import { verifyStorage } from './config/database';
 import { initCronJobs } from './cron/usage-reset.cron';
+import ngrok from '@ngrok/ngrok';
 
 async function bootstrap() {
   // Step 1: Validate environment (crashes immediately if invalid)
@@ -31,11 +32,26 @@ async function bootstrap() {
   console.log('✓ Cron jobs initialized');
 
   // Step 7: Start Express
-  app.listen(env.PORT, () => {
+  app.listen(env.PORT, async () => {
     console.log('──────────────────────────────');
     console.log(`🚀 Server running on port ${env.PORT}`);
     console.log(`📡 Environment: ${env.NODE_ENV}`);
     console.log('──────────────────────────────');
+
+    // Step 8: Initialize ngrok if configured
+    if (env.NGROK_AUTHTOKEN && env.NGROK_DOMAIN) {
+      try {
+        console.log(`[Ngrok] Starting tunnel for ${env.NGROK_DOMAIN}...`);
+        const listener = await ngrok.forward({
+          addr: env.PORT,
+          authtoken: env.NGROK_AUTHTOKEN,
+          domain: env.NGROK_DOMAIN,
+        });
+        console.log(`✅ [Ngrok] Tunnel established at: ${listener.url()}`);
+      } catch (err: any) {
+        console.error(`✗ [Ngrok] Failed to start tunnel:`, err.message);
+      }
+    }
   });
 }
 
