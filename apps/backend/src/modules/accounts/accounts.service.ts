@@ -59,17 +59,29 @@ export class AccountsService {
       if (!igAccount) throw new Error('No linked Instagram business account found on this page');
 
       // 5. Encrypt token and store in DB
-      const encryptedToken = encrypt(pageAccessToken);
-      
-      return await this.accountsRepo.create({
+      const instagramId = igAccount.id;
+      const igUser = { username: igAccount.username };
+      const accountData = {
         userId,
-        facebookPageId: pageId,
-        instagramBusinessAccountId: igAccount.id,
-        pageName,
-        instagramUsername: igAccount.username,
-        encryptedPageAccessToken: encryptedToken,
+        facebookPageId: page.id,
+        instagramBusinessAccountId: instagramId,
+        pageName: page.name,
+        instagramUsername: igUser.username,
+        encryptedPageAccessToken: encrypt(page.access_token),
         tokenExpiresAt,
-      });
+      };
+
+      // Soft delete any existing connection for this instagram account
+      const existingAccounts = await this.accountsRepo.findByInstagramId(instagramId);
+      for (const existing of existingAccounts) {
+        if (existing.userId === userId) {
+           await this.accountsRepo.softDelete(existing.id);
+        }
+      }
+
+      // 6. Save to database
+      const account = await this.accountsRepo.create(accountData);
+      return account;
 
     } catch (err: any) {
       console.error('Meta OAuth Error:', err.response?.data || err.message);

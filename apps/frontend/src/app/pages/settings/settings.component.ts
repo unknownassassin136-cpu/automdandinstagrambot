@@ -58,6 +58,17 @@ export class SettingsComponent {
     this.activeTab = tab;
   }
 
+  disconnectAccount(accountId: string) {
+    if (confirm('Are you sure you want to disconnect this Instagram account? This will stop all active automations.')) {
+      this.accountsService.disconnectAccount(accountId).subscribe({
+        next: () => {
+          this.connectedAccounts = this.connectedAccounts.filter(acc => acc.id !== accountId);
+        },
+        error: (err: any) => console.error('Failed to disconnect account', err)
+      });
+    }
+  }
+
   saveProfile() {
     console.log('Profile saved', this.profileForm.value);
   }
