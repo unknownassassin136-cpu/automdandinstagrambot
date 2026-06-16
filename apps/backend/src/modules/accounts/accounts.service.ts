@@ -15,6 +15,7 @@ export class AccountsService {
           client_secret: env.META_APP_SECRET,
           redirect_uri: env.FRONTEND_URL + '/oauth/callback',
           code: authCode,
+          locale: 'en_US'
         }
       });
       const shortLivedToken = tokenRes.data.access_token;
