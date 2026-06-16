@@ -1,0 +1,202 @@
+<div class="mb-8">
+  <h2 class="text-2xl font-bold text-[var(--color-text)]">Settings</h2>
+  <p class="mt-1 text-sm text-[var(--color-text-secondary)]">Manage your account, billing, and security preferences.</p>
+</div>
+
+<div class="flex flex-col md:flex-row gap-8">
+  <!-- Sidebar Navigation -->
+  <div class="w-full md:w-64 flex-shrink-0">
+    <nav class="space-y-1">
+      <button (click)="switchTab('profile')" [ngClass]="activeTab === 'profile' ? 'bg-indigo-50 text-[var(--color-primary)] font-semibold' : 'text-[var(--color-text-secondary)] hover:bg-gray-50'" class="w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors">
+        Profile
+      </button>
+      <button (click)="switchTab('accounts')" [ngClass]="activeTab === 'accounts' ? 'bg-indigo-50 text-[var(--color-primary)] font-semibold' : 'text-[var(--color-text-secondary)] hover:bg-gray-50'" class="w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors">
+        Connected Accounts
+      </button>
+      <button (click)="switchTab('billing')" [ngClass]="activeTab === 'billing' ? 'bg-indigo-50 text-[var(--color-primary)] font-semibold' : 'text-[var(--color-text-secondary)] hover:bg-gray-50'" class="w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors">
+        Billing & Plan
+      </button>
+      <button (click)="switchTab('security')" [ngClass]="activeTab === 'security' ? 'bg-indigo-50 text-[var(--color-primary)] font-semibold' : 'text-[var(--color-text-secondary)] hover:bg-gray-50'" class="w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors">
+        Security & Sessions
+      </button>
+    </nav>
+  </div>
+
+  <!-- Main Settings Content -->
+  <div class="flex-1 max-w-3xl">
+    
+    <!-- Profile Tab -->
+    @if (activeTab === 'profile') {
+      <div class="card p-6">
+        <h3 class="text-lg font-semibold text-[var(--color-text)] mb-6">Profile Information</h3>
+        <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="space-y-6">
+          <div class="flex items-center gap-6">
+            <div class="h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xl">
+              JD
+            </div>
+            <button type="button" class="btn-secondary text-sm">Change Avatar</button>
+          </div>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text)]">Workspace Name</label>
+              <input type="text" formControlName="companyName" class="input-field mt-1">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text)]">Full Name</label>
+              <input type="text" formControlName="fullName" class="input-field mt-1">
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-text)]">Work Email</label>
+            <input type="email" formControlName="email" class="input-field mt-1">
+          </div>
+          
+          <div class="flex justify-end pt-4">
+            <button type="submit" [disabled]="!profileForm.valid" class="btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- Accounts Tab -->
+    @if (activeTab === 'accounts') {
+      <div class="space-y-6">
+        <div class="card p-6">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="text-lg font-semibold text-[var(--color-text)]">Meta Integration</h3>
+              <p class="text-sm text-[var(--color-text-secondary)]">Connect your Instagram Business accounts via Facebook to enable automations.</p>
+            </div>
+            <button (click)="loginWithFacebook()" class="btn-primary flex items-center gap-2">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" />
+              </svg>
+              Connect Meta Account
+            </button>
+          </div>
+
+          @if (connectedAccounts.length > 0) {
+            <div class="divide-y divide-[var(--color-borders)] border border-[var(--color-borders)] rounded-lg overflow-hidden">
+              @for (acc of connectedAccounts; track acc.id) {
+                <div class="p-4 flex items-center justify-between bg-white hover:bg-gray-50 transition-colors">
+                  <div class="flex items-center gap-4">
+                    <div class="h-10 w-10 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
+                      @
+                    </div>
+                    <div>
+                      <p class="font-medium text-[var(--color-text)]">{{ acc.instagramUsername }}</p>
+                      <p class="text-xs text-[var(--color-text-secondary)]">Linked via {{ acc.pageName }}</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-4">
+                    <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-green-50 text-green-700">
+                      <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                      Active
+                    </span>
+                    <button class="text-[var(--color-danger)] text-sm font-medium hover:underline">Disconnect</button>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="border-2 border-dashed border-[var(--color-borders)] rounded-xl p-8 text-center bg-gray-50/50">
+              <div class="mx-auto w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mb-3">
+                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+              </div>
+              <h4 class="text-[var(--color-text)] font-semibold mb-1">No Accounts Connected</h4>
+              <p class="text-sm text-[var(--color-text-secondary)] mb-4">You need to connect an Instagram account to create automations.</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Billing Tab -->
+    @if (activeTab === 'billing') {
+      <div class="space-y-6">
+        <div class="card p-6">
+          <h3 class="text-lg font-semibold text-[var(--color-text)] mb-2">Current Plan</h3>
+          <p class="text-sm text-[var(--color-text-secondary)] mb-6">You are currently on the <span class="font-bold text-[var(--color-primary)]">Pro Plan</span>. Your next billing date is Oct 1, 2026.</p>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            @for (plan of billingPlans; track plan.name) {
+              <div [ngClass]="plan.current ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]' : 'border-[var(--color-borders)]'" class="border rounded-xl p-4 relative">
+                @if (plan.current) {
+                  <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--color-primary)] text-white text-xs font-bold px-2 py-0.5 rounded-full">Current</span>
+                }
+                <h4 class="font-semibold text-[var(--color-text)]">{{ plan.name }}</h4>
+                <div class="mt-2 text-2xl font-bold text-[var(--color-text)]">{{ plan.price }}</div>
+                <ul class="mt-4 space-y-2 text-sm text-[var(--color-text-secondary)]">
+                  @for (feature of plan.features; track feature) {
+                    <li class="flex items-start gap-2">
+                      <svg class="w-4 h-4 text-[var(--color-success)] mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      {{ feature }}
+                    </li>
+                  }
+                </ul>
+                <button [ngClass]="plan.current ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'btn-secondary'" class="w-full mt-6 py-2 text-sm rounded-lg border font-medium transition-colors">
+                  {{ plan.current ? 'Current Plan' : 'Upgrade' }}
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Security Tab -->
+    @if (activeTab === 'security') {
+      <div class="space-y-6">
+        <div class="card p-6">
+          <h3 class="text-lg font-semibold text-[var(--color-text)] mb-4">Change Password</h3>
+          <form class="space-y-4 max-w-sm">
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text)]">Current Password</label>
+              <input type="password" class="input-field mt-1">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-[var(--color-text)]">New Password</label>
+              <input type="password" class="input-field mt-1">
+            </div>
+            <button type="button" class="btn-primary mt-2">Update Password</button>
+          </form>
+        </div>
+
+        <div class="card p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-[var(--color-text)]">Active Sessions</h3>
+            <button class="text-sm text-[var(--color-danger)] font-medium hover:underline">Log out all other sessions</button>
+          </div>
+          <div class="divide-y divide-[var(--color-borders)] border border-[var(--color-borders)] rounded-lg overflow-hidden">
+            @for (session of sessions; track session.device) {
+              <div class="p-4 flex items-center justify-between bg-white hover:bg-gray-50 transition-colors">
+                <div class="flex items-start gap-3">
+                  <div class="mt-1">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-[var(--color-text)] flex items-center gap-2">
+                      {{ session.device }}
+                      @if (session.current) {
+                        <span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Current</span>
+                      }
+                    </p>
+                    <p class="text-xs text-[var(--color-text-secondary)] mt-0.5">{{ session.location }} • {{ session.time }}</p>
+                  </div>
+                </div>
+                @if (!session.current) {
+                  <button class="btn-secondary text-xs px-3 py-1.5">Revoke</button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+  </div>
+</div>

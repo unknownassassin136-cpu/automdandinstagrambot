@@ -1,0 +1,58 @@
+<form class="space-y-4" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+  <div *ngIf="error" class="bg-red-50 text-red-600 p-3 rounded-md text-sm mb-4">
+    {{ error }}
+  </div>
+
+  <div>
+    <label for="companyName" class="block text-sm font-medium text-[var(--color-text)]">
+      Workspace Name
+    </label>
+    <div class="mt-1">
+      <input id="companyName" type="text" formControlName="companyName" class="input-field" placeholder="Acme Corp">
+    </div>
+  </div>
+
+  <div>
+    <label for="fullName" class="block text-sm font-medium text-[var(--color-text)]">
+      Full Name
+    </label>
+    <div class="mt-1">
+      <input id="fullName" type="text" formControlName="fullName" class="input-field" placeholder="Jane Doe">
+    </div>
+  </div>
+
+  <div>
+    <label for="email" class="block text-sm font-medium text-[var(--color-text)]">
+      Work Email
+    </label>
+    <div class="mt-1">
+      <input id="email" type="email" formControlName="email" class="input-field" placeholder="jane@acme.com">
+    </div>
+  </div>
+
+  <div>
+    <label for="password" class="block text-sm font-medium text-[var(--color-text)]">
+      Password
+    </label>
+    <div class="mt-1">
+      <input id="password" type="password" formControlName="password" class="input-field" placeholder="••••••••">
+      <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Must be at least 8 characters long.</p>
+    </div>
+  </div>
+
+  <div>
+    <button type="submit" [disabled]="!registerForm.valid || loading" class="w-full flex justify-center btn-primary disabled:opacity-50 mt-6">
+      <span *ngIf="loading">Creating Account...</span>
+      <span *ngIf="!loading">Create Account</span>
+    </button>
+  </div>
+</form>
+
+<div class="mt-6 text-center">
+  <p class="text-sm text-[var(--color-text-secondary)]">
+    Already have an account?
+    <a routerLink="/auth/login" class="font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">
+      Sign in here
+    </a>
+  </p>
+</div>

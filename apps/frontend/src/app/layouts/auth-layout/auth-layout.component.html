@@ -1,0 +1,22 @@
+<div class="min-h-screen bg-[var(--color-background)] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+  <div class="sm:mx-auto sm:w-full sm:max-w-md text-center">
+    <!-- Placeholder Logo -->
+    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--color-primary)] bg-opacity-10 mb-4">
+      <svg class="w-8 h-8 text-[var(--color-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    </div>
+    <h2 class="mt-2 text-center text-3xl font-extrabold text-[var(--color-text)]">
+      AutoMD Platform
+    </h2>
+    <p class="mt-2 text-center text-sm text-[var(--color-text-secondary)]">
+      Multi-tenant Instagram Automation
+    </p>
+  </div>
+
+  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="card p-8">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

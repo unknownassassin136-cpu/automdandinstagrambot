@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@config/*": ["src/config/*"],
+      "@database/*": ["src/database/*"],
+      "@modules/*": ["src/modules/*"],
+      "@queues/*": ["src/queues/*"],
+      "@middleware/*": ["src/middleware/*"],
+      "@shared/*": ["src/shared/*"],
+      "@cron/*": ["src/cron/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"]
+}

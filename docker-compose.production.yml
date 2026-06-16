@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  automd-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: automd-backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    env_file:
+      - apps/backend/.env
+    # If using NGINX reverse proxy, the proxy should route to 127.0.0.1:3000

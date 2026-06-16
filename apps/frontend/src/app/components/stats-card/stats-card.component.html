@@ -1,0 +1,28 @@
+<div class="card p-6 flex flex-col justify-between">
+  <div class="flex items-start justify-between">
+    <div>
+      <p class="text-sm font-medium text-[var(--color-text-secondary)]">{{ title }}</p>
+      <h3 class="mt-2 text-3xl font-bold text-[var(--color-text)]">{{ value }}</h3>
+    </div>
+    <div class="p-3 bg-indigo-50 rounded-xl">
+      <svg class="w-6 h-6 text-[var(--color-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="iconPath" />
+      </svg>
+    </div>
+  </div>
+  
+  @if (change !== undefined) {
+    <div class="mt-4 flex items-center text-sm">
+      <span [ngClass]="change >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'" class="flex items-center font-medium">
+        <svg *ngIf="change >= 0" class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+        <svg *ngIf="change < 0" class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+        </svg>
+        {{ change }}%
+      </span>
+      <span class="text-[var(--color-text-secondary)] ml-2">from last month</span>
+    </div>
+  }
+</div>

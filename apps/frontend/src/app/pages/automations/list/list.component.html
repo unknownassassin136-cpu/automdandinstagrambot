@@ -1,0 +1,74 @@
+<div class="mb-8 flex justify-between items-end">
+  <div>
+    <h2 class="text-2xl font-bold text-[var(--color-text)]">Automations</h2>
+    <p class="mt-1 text-sm text-[var(--color-text-secondary)]">
+      Manage your active Instagram rules and auto-reply templates.
+    </p>
+  </div>
+  <button routerLink="/automations/new" class="btn-primary flex items-center gap-2">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+    </svg>
+    Create Automation
+  </button>
+</div>
+
+<!-- Automations Table -->
+<div class="card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-[var(--color-borders)]">
+      <thead class="bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
+            Name & Trigger
+          </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
+            Status
+          </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
+            Replied
+          </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
+            Last Active
+          </th>
+          <th scope="col" class="relative px-6 py-3">
+            <span class="sr-only">Edit</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-[var(--color-borders)]">
+        <tr *ngFor="let item of automations" class="hover:bg-gray-50 transition-colors">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-lg bg-indigo-50 text-[var(--color-primary)]">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <div class="ml-4">
+                  <div class="text-sm font-medium text-[var(--color-text)]">Keyword: {{ item.triggerKeyword }}</div>
+                  <div class="text-sm text-[var(--color-text-secondary)]">Comments matching "{{ item.triggerKeyword }}"</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span [ngClass]="item.isActive ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'" 
+                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full capitalize">
+                {{ item.isActive ? 'Active' : 'Paused' }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
+              -
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
+              Just now
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <a [routerLink]="['/automations/edit', item.id]" class="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] mr-4">Edit</a>
+              <button (click)="item.id && deleteAutomation(item.id)" class="text-red-600 hover:text-red-900 focus:outline-none">Delete</button>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

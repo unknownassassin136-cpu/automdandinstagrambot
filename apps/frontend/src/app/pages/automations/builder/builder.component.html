@@ -1,0 +1,117 @@
+<div class="mb-8 flex items-center gap-4">
+  <a routerLink="/automations" class="p-2 bg-white border border-[var(--color-borders)] rounded-lg text-[var(--color-text-secondary)] hover:bg-gray-50 transition-colors">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+    </svg>
+  </a>
+  <div>
+    <h2 class="text-2xl font-bold text-[var(--color-text)]">Create Automation</h2>
+    <p class="text-sm text-[var(--color-text-secondary)]">Configure when this rule triggers and what happens.</p>
+  </div>
+</div>
+
+<form [formGroup]="builderForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  
+  <!-- Left Side: Configuration -->
+  <div class="lg:col-span-2 space-y-6">
+    <div class="card p-6">
+      <h3 class="text-lg font-semibold text-[var(--color-text)] mb-4 border-b border-[var(--color-borders)] pb-2">1. Basic Info</h3>
+      <div>
+        <label class="block text-sm font-medium text-[var(--color-text)]">Internal Name</label>
+        <input type="text" formControlName="name" class="input-field mt-1" placeholder="e.g., Summer Sale Auto-DM">
+      </div>
+    </div>
+
+    <div class="card p-6">
+      <h3 class="text-lg font-semibold text-[var(--color-text)] mb-4 border-b border-[var(--color-borders)] pb-2">2. When this happens (Trigger)</h3>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Target Post / Reel</label>
+          <select formControlName="targetMediaId" class="input-field mt-1">
+            <option value="">Any Post (Global Rule)</option>
+            <option *ngFor="let media of mediaList" [value]="media.id">
+              {{ media.caption ? (media.caption | slice:0:50) + '...' : media.media_type + ' - ' + (media.timestamp | date) }}
+            </option>
+          </select>
+          <p class="text-xs text-gray-500 mt-1">Leave as "Any Post" to reply to comments on all reels and posts.</p>
+        </div>
+
+        <div class="flex items-center gap-2 py-2">
+          <input type="checkbox" formControlName="isDefaultRule" id="isDefaultRule" class="w-4 h-4 text-[var(--color-primary)] border-gray-300 rounded focus:ring-[var(--color-primary)]">
+          <label for="isDefaultRule" class="text-sm font-medium text-[var(--color-text)]">Make this a Default Catch-All Rule (Triggers when no other keywords match)</label>
+        </div>
+
+        <div *ngIf="!builderForm.get('isDefaultRule')?.value">
+          <label class="block text-sm font-medium text-[var(--color-text)]">Trigger Type</label>
+          <select formControlName="triggerType" class="input-field mt-1">
+            <option value="comment_exact">User comments exact keyword</option>
+            <option value="comment_contains">User comments contains keyword</option>
+          </select>
+        </div>
+        <div *ngIf="!builderForm.get('isDefaultRule')?.value">
+          <label class="block text-sm font-medium text-[var(--color-text)]">Keywords (comma separated)</label>
+          <input type="text" formControlName="keywords" class="input-field mt-1" placeholder="link, send, buy">
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-6">
+      <h3 class="text-lg font-semibold text-[var(--color-text)] mb-4 border-b border-[var(--color-borders)] pb-2">3. Do this (Action)</h3>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-text)]">Action Type</label>
+          <select formControlName="replyType" class="input-field mt-1">
+            <option value="comment_and_dm">Reply to Comment & Send DM</option>
+            <option value="comment_only">Reply to Comment Only</option>
+            <option value="dm_only">Send DM Only</option>
+          </select>
+        </div>
+        
+        <div *ngIf="builderForm.get('replyType')?.value !== 'dm_only'">
+          <label class="block text-sm font-medium text-[var(--color-text)]">Comment Reply Template</label>
+          <textarea formControlName="commentTemplate" rows="2" class="input-field mt-1" placeholder="Hey @{{'{{'}}username{{'}}'}}! Sent you a DM with the link!"></textarea>
+        </div>
+
+        <div *ngIf="builderForm.get('replyType')?.value !== 'comment_only'">
+          <label class="block text-sm font-medium text-[var(--color-text)]">Direct Message Template</label>
+          <textarea formControlName="dmTemplate" rows="4" class="input-field mt-1" placeholder="Hey! Thanks for your interest. Here is the link you requested: https://..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Publish Panel -->
+  <div class="space-y-6">
+    <div class="card p-6 sticky top-24">
+      <h3 class="text-lg font-semibold text-[var(--color-text)] mb-4">Publish Status</h3>
+      
+      <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-6">
+        <p class="text-sm text-indigo-800">
+          This automation will instantly go live for all selected Instagram accounts once published.
+        </p>
+      </div>
+
+      @if (error) {
+        <div class="mb-4 p-3 bg-red-50 text-[var(--color-danger)] rounded-lg text-sm">
+          {{ error }}
+        </div>
+      }
+
+      <button type="submit" [disabled]="!builderForm.valid || loading || !activeAccount" class="w-full btn-primary disabled:opacity-50 py-3 mb-3 flex justify-center items-center gap-2">
+        @if (loading) {
+          <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Saving...
+        } @else {
+          Save & Publish
+        }
+      </button>
+      <button type="button" class="w-full btn-secondary py-3" [disabled]="loading">
+        Save as Draft
+      </button>
+    </div>
+  </div>
+
+</form>
