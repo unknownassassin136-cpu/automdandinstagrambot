@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.analyticsRouter = void 0;
+const express_1 = require("express");
+const analytics_controller_1 = require("./analytics.controller");
+const auth_middleware_1 = require("../../middleware/auth.middleware");
+exports.analyticsRouter = (0, express_1.Router)();
+const controller = new analytics_controller_1.AnalyticsController();
+exports.analyticsRouter.use(auth_middleware_1.authMiddleware);
+exports.analyticsRouter.get('/dashboard', controller.getDashboardStats);
+exports.analyticsRouter.get('/logs', controller.getRecentLogs);
