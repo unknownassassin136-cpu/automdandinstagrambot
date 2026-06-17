@@ -47,7 +47,24 @@ export class AccountsService {
       const igAccount = igRes.data;
       if (!igAccount || !igAccount.id) throw new Error('Could not fetch Instagram account profile');
 
-      // 4. Encrypt token and store in DB
+      // 4. Automatically subscribe the Instagram account to webhooks
+      try {
+        await axios.post(
+          'https://graph.instagram.com/v21.0/me/subscribed_apps',
+          null,
+          {
+            params: { subscribed_fields: 'messages,comments' },
+            headers: { Authorization: `Bearer ${longLivedToken}` }
+          }
+        );
+        console.log(`✓ Successfully subscribed account ${igAccount.username} to messages/comments webhooks`);
+      } catch (subErr: any) {
+        console.error('Failed to automatically subscribe account to webhooks:', subErr.response?.data || subErr.message);
+        // We don't throw here, as they might have a Creator account that doesn't permit it,
+        // but we still want to save the account so they can at least use other features.
+      }
+
+      // 5. Encrypt token and store in DB
       const instagramId = igAccount.id.toString(); // Ensure string
       const accountData = {
         userId,

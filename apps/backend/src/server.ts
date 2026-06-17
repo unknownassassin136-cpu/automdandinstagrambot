@@ -6,6 +6,7 @@ import { verifyStorage } from './config/database';
 import { initCronJobs } from './cron/usage-reset.cron';
 import ngrok from '@ngrok/ngrok';
 
+// Triggering hot-reload to pick up new .env variables
 async function bootstrap() {
   // Step 1: Validate environment (crashes immediately if invalid)
   const env = validateEnv();

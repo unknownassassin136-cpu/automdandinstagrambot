@@ -31,12 +31,23 @@ export class WebhooksService {
     if (payload.object !== 'instagram') return;
 
     for (const entry of payload.entry) {
-      const accountId = entry.id; // Instagram Business Account ID
+      const originalAccountId = entry.id;
+      let accountId = entry.id; // Instagram Business Account ID
       
+      // Temporary hack: Map legacy Webhook ID to new IGSID for 3dhub_official
+      if (accountId === '17841475040051469') {
+        accountId = '28575411545382951';
+      }
+      
+      // Temporary hack: Map legacy Webhook ID to new IGSID for bindhu_exp
+      if (accountId === '17841477884718775') {
+        accountId = '27134915662866651';
+      }
+
       // Find Connected Account FIRST
       const accounts = await this.accountsRepo.findByInstagramId(accountId);
       if (accounts.length === 0) {
-        console.error(`No connected account found for IG ID ${accountId}`);
+        console.error(`No connected account found for IG ID ${accountId} (Original: ${entry.id})`);
         continue;
       }
       const internalAccount = accounts[0];
@@ -61,10 +72,10 @@ export class WebhooksService {
         const messageId = msgEvent.message?.mid;
         const messageText = msgEvent.message?.text || '';
         
-        if (!senderId || senderId === accountId) continue;
+        if (!senderId || senderId === accountId || senderId === originalAccountId) continue;
         if (!messageText) continue;
 
-        const eventId = `ig_message_${messageId}_${new Date().getTime()}`;
+        const eventId = `ig_message_${messageId}`;
         const isProcessed = await this.webhooksRepo.isEventProcessed(eventId);
         if (isProcessed) continue;
         
@@ -101,9 +112,9 @@ export class WebhooksService {
             const mediaId = commentData.media?.id;
             
             // Don't reply to our own comments
-            if (!senderId || senderId === accountId) continue;
+            if (!senderId || senderId === accountId || senderId === originalAccountId) continue;
 
-            const eventId = `ig_comment_${commentId}_${new Date().getTime()}`;
+            const eventId = `ig_comment_${commentId}`;
 
             const isProcessed = await this.webhooksRepo.isEventProcessed(eventId);
             if (isProcessed) continue;
