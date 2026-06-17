@@ -45,6 +45,14 @@ export class AccountsRepository {
       .where(eq(connectedAccounts.id, accountId));
   }
 
+  async update(accountId: string, data: Partial<typeof connectedAccounts.$inferInsert>) {
+    const [account] = await db.update(connectedAccounts)
+      .set(data)
+      .where(eq(connectedAccounts.id, accountId))
+      .returning();
+    return account;
+  }
+
   async findByInstagramId(instagramId: string) {
     return db.select()
       .from(connectedAccounts)

@@ -77,16 +77,29 @@ export class AccountsService {
       };
 
       // Soft delete any existing connection for this instagram account
+      // wait, actually we want to UPDATE if it belongs to this user!
       const existingAccounts = await this.accountsRepo.findByInstagramId(instagramId);
+      
+      let existingAccount = null;
       for (const existing of existingAccounts) {
         if (existing.userId === userId) {
+           existingAccount = existing;
+           break;
+        } else {
+           // If it belongs to a DIFFERENT user, soft delete it to prevent hijacking
            await this.accountsRepo.softDelete(existing.id);
         }
       }
 
-      // 5. Save to database
-      const account = await this.accountsRepo.create(accountData);
-      return account;
+      // 5. Save or Update in database
+      if (existingAccount) {
+        // Update the token on the existing account to preserve Automation Rules!
+        const account = await this.accountsRepo.update(existingAccount.id, accountData);
+        return account;
+      } else {
+        const account = await this.accountsRepo.create(accountData);
+        return account;
+      }
 
     } catch (err: any) {
       console.error('Meta/Instagram OAuth Error:', err.response?.data || err.message);
