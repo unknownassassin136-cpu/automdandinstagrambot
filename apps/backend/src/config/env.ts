@@ -20,6 +20,8 @@ const envSchema = z.object({
   META_APP_ID: z.string().min(1, 'META_APP_ID is required'),
   META_APP_SECRET: z.string().min(1, 'META_APP_SECRET is required'),
   META_VERIFY_TOKEN: z.string().min(1, 'META_VERIFY_TOKEN is required'),
+  INSTAGRAM_APP_ID: z.string().min(1, 'INSTAGRAM_APP_ID is required'),
+  INSTAGRAM_APP_SECRET: z.string().min(1, 'INSTAGRAM_APP_SECRET is required'),
 
   // Encryption
   ENCRYPTION_KEY: z.string().min(32, 'ENCRYPTION_KEY must be at least 32 bytes'),

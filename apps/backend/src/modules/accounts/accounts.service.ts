@@ -9,24 +9,25 @@ export class AccountsService {
   async connectAccount(userId: string, authCode: string) {
     try {
       // 1. Exchange authCode for short-lived access token
-      const tokenRes = await axios.get('https://graph.facebook.com/v19.0/oauth/access_token', {
-        params: {
-          client_id: env.META_APP_ID,
-          client_secret: env.META_APP_SECRET,
-          redirect_uri: env.FRONTEND_URL + '/oauth/callback',
-          code: authCode,
-          locale: 'en_US'
-        }
+      const tokenForm = new URLSearchParams();
+      tokenForm.append('client_id', env.INSTAGRAM_APP_ID);
+      tokenForm.append('client_secret', env.INSTAGRAM_APP_SECRET);
+      tokenForm.append('grant_type', 'authorization_code');
+      tokenForm.append('redirect_uri', env.FRONTEND_URL + '/oauth/callback');
+      tokenForm.append('code', authCode);
+
+      const tokenRes = await axios.post('https://api.instagram.com/oauth/access_token', tokenForm.toString(), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       });
       const shortLivedToken = tokenRes.data.access_token;
+      const igUserId = tokenRes.data.user_id;
 
       // 2. Exchange for long-lived access token
-      const longLivedRes = await axios.get('https://graph.facebook.com/v19.0/oauth/access_token', {
+      const longLivedRes = await axios.get('https://graph.instagram.com/access_token', {
         params: {
-          grant_type: 'fb_exchange_token',
-          client_id: env.META_APP_ID,
-          client_secret: env.META_APP_SECRET,
-          fb_exchange_token: shortLivedToken,
+          grant_type: 'ig_exchange_token',
+          client_secret: env.INSTAGRAM_APP_SECRET,
+          access_token: shortLivedToken,
         }
       });
       const longLivedToken = longLivedRes.data.access_token;
@@ -35,39 +36,26 @@ export class AccountsService {
       const expiresIn = longLivedRes.data.expires_in || (60 * 24 * 60 * 60);
       const tokenExpiresAt = new Date(Date.now() + expiresIn * 1000);
 
-      // 3. Get user pages
-      const pagesRes = await axios.get('https://graph.facebook.com/v19.0/me/accounts', {
-        params: { access_token: longLivedToken }
-      });
-      
-      const page = pagesRes.data.data[0]; // For MVP, grab the first connected page
-      if (!page) throw new Error('No Facebook pages found');
-      
-      const pageAccessToken = page.access_token;
-      const pageId = page.id;
-      const pageName = page.name;
-
-      // 4. Get connected Instagram account
-      const igRes = await axios.get(`https://graph.facebook.com/v19.0/${pageId}`, {
+      // 3. Get Instagram User Profile
+      const igRes = await axios.get(`https://graph.instagram.com/v21.0/me`, {
         params: {
-          fields: 'instagram_business_account{id,username}',
-          access_token: pageAccessToken
+          fields: 'id,username,name',
+          access_token: longLivedToken
         }
       });
       
-      const igAccount = igRes.data.instagram_business_account;
-      if (!igAccount) throw new Error('No linked Instagram business account found on this page');
+      const igAccount = igRes.data;
+      if (!igAccount || !igAccount.id) throw new Error('Could not fetch Instagram account profile');
 
-      // 5. Encrypt token and store in DB
-      const instagramId = igAccount.id;
-      const igUser = { username: igAccount.username };
+      // 4. Encrypt token and store in DB
+      const instagramId = igAccount.id.toString(); // Ensure string
       const accountData = {
         userId,
-        facebookPageId: page.id,
+        facebookPageId: null as any, // Nullable now
         instagramBusinessAccountId: instagramId,
-        pageName: page.name,
-        instagramUsername: igUser.username,
-        encryptedPageAccessToken: encrypt(page.access_token),
+        pageName: null as any,
+        instagramUsername: igAccount.username || igAccount.name || 'Unknown',
+        encryptedPageAccessToken: encrypt(longLivedToken),
         tokenExpiresAt,
       };
 
@@ -79,13 +67,13 @@ export class AccountsService {
         }
       }
 
-      // 6. Save to database
+      // 5. Save to database
       const account = await this.accountsRepo.create(accountData);
       return account;
 
     } catch (err: any) {
-      console.error('Meta OAuth Error:', err.response?.data || err.message);
-      throw new Error('Failed to connect Meta account');
+      console.error('Meta/Instagram OAuth Error:', err.response?.data || err.message);
+      throw new Error('Failed to connect Instagram account');
     }
   }
 
@@ -115,7 +103,7 @@ export class AccountsService {
     const igAccountId = account.instagramBusinessAccountId;
 
     try {
-      const res = await axios.get(`https://graph.facebook.com/v19.0/${igAccountId}/media`, {
+      const res = await axios.get(`https://graph.instagram.com/v21.0/me/media`, {
         params: {
           fields: 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp',
           access_token: accessToken,

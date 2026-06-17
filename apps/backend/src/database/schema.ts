@@ -51,7 +51,7 @@ export const subscriptions = pgTable('subscriptions', {
 export const connectedAccounts = pgTable('connected_accounts', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
-  facebookPageId: varchar('facebook_page_id', { length: 100 }).notNull(),
+  facebookPageId: varchar('facebook_page_id', { length: 100 }),
   instagramBusinessAccountId: varchar('instagram_business_account_id', { length: 100 }).notNull(),
   pageName: varchar('page_name', { length: 255 }),
   instagramUsername: varchar('instagram_username', { length: 255 }),

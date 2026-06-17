@@ -34,7 +34,7 @@ export class WebhooksController {
       return;
     }
 
-    const expectedSignature = `sha256=${crypto.createHmac('sha256', env.META_APP_SECRET).update(rawBody).digest('hex')}`;
+    const expectedSignature = `sha256=${crypto.createHmac('sha256', env.INSTAGRAM_APP_SECRET).update(rawBody).digest('hex')}`;
 
     if (signature !== expectedSignature) {
       console.error('Invalid webhook signature');

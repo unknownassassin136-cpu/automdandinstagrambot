@@ -45,11 +45,11 @@ export class SettingsComponent {
     });
   }
 
-  loginWithFacebook() {
-    const clientId = environment.metaAppId;
+  loginWithInstagram() {
+    const clientId = environment.instagramAppId;
     const redirectUri = encodeURIComponent(`${window.location.origin}/oauth/callback`);
-    const scopes = 'instagram_basic,instagram_manage_messages,instagram_manage_comments,pages_show_list,pages_read_engagement';
-    const oauthUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes}&response_type=code`;
+    const scopes = 'instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments';
+    const oauthUrl = `https://www.instagram.com/oauth/authorize?enable_fb_login=0&force_authentication=1&client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scopes}`;
     
     window.location.href = oauthUrl;
   }
