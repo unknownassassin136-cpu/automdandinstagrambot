@@ -11,5 +11,11 @@ try {
 } catch (err) {
   console.error('⚠️ Dependency installation failed (usually safe to ignore if dist is prebuilt). Continuing...');
 }
+try {
+  console.log('🔄 [Pterodactyl] Building backend before starting...');
+  execSync('npx --yes pnpm@9 run build --filter backend', { stdio: 'inherit' });
+} catch (err) {
+  console.error('⚠️ Build failed. Continuing...');
+}
 
 require('./apps/backend/dist/server.js');
