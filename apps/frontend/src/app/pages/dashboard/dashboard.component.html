@@ -15,10 +15,8 @@
 
 <!-- Stats Grid -->
 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-  @for (stat of stats; track stat.title) {
-  <app-stats-card [title]="stat.title" [value]="stat.value" [change]="stat.change" [iconPath]="stat.iconPath">
+  <app-stats-card *ngFor="let stat of stats" [title]="stat.title" [value]="stat.value" [change]="stat.change" [iconPath]="stat.iconPath">
   </app-stats-card>
-  }
 </div>
 
 <!-- Bottom Section: Charts & Activity -->
@@ -50,47 +48,34 @@
   <!-- Right Side: Recent Activity -->
   <div class="card p-6">
     <h3 class="text-lg font-semibold text-[var(--color-text)] mb-4">Recent Activity</h3>
-    <div class="flow-root">
-      <ul role="list" class="-mb-8">
-        @for (activity of recentActivity; track $index; let last = $last) {
-        <li>
+    <div class="space-y-4">
+      <ul role="list" class="-mb-8" *ngIf="recentActivity && recentActivity.length > 0; else emptyState">
+        <li *ngFor="let activity of recentActivity; let last = last">
           <div class="relative pb-8">
-            @if (!last) {
-            <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
-            }
+            <span *ngIf="!last" class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-[var(--color-borders)]" aria-hidden="true"></span>
             <div class="relative flex space-x-3">
               <div>
-                <span [ngClass]="{
-                      'bg-green-500': activity.type === 'comment',
-                      'bg-blue-500': activity.type === 'dm',
-                      'bg-gray-500': activity.type === 'system'
-                    }" class="h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white">
-                  <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <!-- Simple icon mapping -->
-                    <path *ngIf="activity.type === 'comment'" stroke-linecap="round" stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    <path *ngIf="activity.type !== 'comment'" stroke-linecap="round" stroke-linejoin="round"
-                      stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <span [ngClass]="activity.type === 'comment' ? 'bg-blue-500' : activity.type === 'dm' ? 'bg-purple-500' : 'bg-gray-500'" class="h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white">
+                  <svg class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M10 2c-2.236 0-4.43.18-6.57.524C1.993 2.755 1 4.014 1 5.426v5.148c0 1.413.993 2.67 2.43 2.902.848.137 1.705.248 2.57.331v3.443a.75.75 0 001.28.53l3.58-3.579a22.54 22.54 0 004.14-.4m-6.5-2.731l.02.022z" clip-rule="evenodd" />
                   </svg>
                 </span>
               </div>
-              <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+              <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
                 <div>
-                  <p class="text-sm text-[var(--color-text)]">
-                    {{ activity.rule }} <span class="text-[var(--color-text-secondary)]">for</span> <span
-                      class="font-medium text-[var(--color-text)]">{{ activity.account }}</span>
-                  </p>
+                  <p class="text-sm text-[var(--color-text)]">{{ activity.rule }} <span class="text-[var(--color-text-secondary)]">on</span> <a href="#" class="font-medium text-[var(--color-primary)] hover:underline">{{ activity.account }}</a></p>
                 </div>
-                <div class="text-right text-sm whitespace-nowrap text-[var(--color-text-secondary)]">
-                  <time>{{ activity.time }}</time>
+                <div class="whitespace-nowrap text-right text-sm text-[var(--color-text-secondary)]">
+                  <time [attr.datetime]="activity.time">{{ activity.time | date:'shortTime' }}</time>
                 </div>
               </div>
             </div>
           </div>
         </li>
-        }
       </ul>
+      <ng-template #emptyState>
+        <p class="text-sm text-[var(--color-text-muted)] text-center py-4">No recent activity found.</p>
+      </ng-template>
     </div>
   </div>
 
