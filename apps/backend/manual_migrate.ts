@@ -1,19 +1,44 @@
 import { db } from './src/database/db';
-import postgres from 'postgres';
 import { sql } from 'drizzle-orm';
 
-async function migrate() {
-  console.log('Running manual migration...');
+async function main() {
   try {
-    // Add columns
-    await db.execute(sql`ALTER TABLE automation_rules ADD COLUMN IF NOT EXISTS target_media_id VARCHAR(255);`);
-    await db.execute(sql`ALTER TABLE automation_rules ADD COLUMN IF NOT EXISTS is_default_rule BOOLEAN DEFAULT false;`);
-    await db.execute(sql`ALTER TABLE automation_rules ADD COLUMN IF NOT EXISTS trigger_type VARCHAR(50) DEFAULT 'exact';`);
-    console.log('Migration successful!');
-  } catch (error) {
-    console.error('Migration failed:', error);
+    console.log('Creating subscriptions table...');
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS subscriptions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        plan_name VARCHAR(50) NOT NULL DEFAULT 'free',
+        status VARCHAR(20) DEFAULT 'active',
+        monthly_limit INTEGER DEFAULT 100,
+        max_accounts INTEGER DEFAULT 1,
+        expires_at TIMESTAMP WITH TIME ZONE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+    `);
+    
+    console.log('Creating usage_tracking table...');
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS usage_tracking (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        month VARCHAR(7) NOT NULL,
+        reply_count INTEGER DEFAULT 0,
+        dm_count INTEGER DEFAULT 0
+      );
+    `);
+
+    console.log('Adding unique constraint to usage_tracking...');
+    await db.execute(sql`
+      CREATE UNIQUE INDEX IF NOT EXISTS unq_user_month ON usage_tracking (user_id, month);
+    `);
+
+    console.log('Successfully created tables');
+    process.exit(0);
+  } catch (err) {
+    console.error(err);
+    process.exit(1);
   }
-  process.exit(0);
 }
 
-migrate();
+main();

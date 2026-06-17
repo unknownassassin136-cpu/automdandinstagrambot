@@ -1,5 +1,5 @@
 import { db } from '../../database/db';
-import { usageTracking, automationLogs, connectedAccounts } from '../../database/schema';
+import { usageTracking, automationLogs, connectedAccounts, automationRules } from '../../database/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 
 export class AnalyticsService {

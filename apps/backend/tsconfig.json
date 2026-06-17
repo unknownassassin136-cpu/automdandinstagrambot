@@ -17,8 +17,7 @@
       "@middleware/*": ["src/middleware/*"],
       "@shared/*": ["src/shared/*"],
       "@cron/*": ["src/cron/*"]
-    },
-    "ignoreDeprecations": "6.0"
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"]
