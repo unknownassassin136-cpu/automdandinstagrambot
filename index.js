@@ -13,7 +13,7 @@ try {
 }
 try {
   console.log('🔄 [Pterodactyl] Building backend before starting...');
-  execSync('npx --yes pnpm@9 run build --filter backend', { stdio: 'inherit' });
+  execSync('npx --yes pnpm@9 --filter backend run build', { stdio: 'inherit' });
 } catch (err) {
   console.error('⚠️ Build failed. Continuing...');
 }
