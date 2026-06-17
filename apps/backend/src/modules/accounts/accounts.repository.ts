@@ -59,7 +59,13 @@ export class AccountsRepository {
     return account;
   }
 
-  async findByInstagramId(instagramId: string) {
+  async findByInstagramId(instagramId: string, includeDeleted = false) {
+    if (includeDeleted) {
+      return db.select()
+        .from(connectedAccounts)
+        .where(eq(connectedAccounts.instagramBusinessAccountId, instagramId));
+    }
+    
     return db.select()
       .from(connectedAccounts)
       .where(

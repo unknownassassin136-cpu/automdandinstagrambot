@@ -76,15 +76,13 @@ export class AccountsService {
         tokenExpiresAt,
       };
 
-      // Soft delete any existing connection for this instagram account
-      // wait, actually we want to UPDATE if it belongs to this user!
-      const existingAccounts = await this.accountsRepo.findByInstagramId(instagramId);
+      // Soft delete any existing connection for this instagram account that belong to OTHER users
+      const existingAccounts = await this.accountsRepo.findByInstagramId(instagramId, true); // true to include deleted
       
       let existingAccount = null;
       for (const existing of existingAccounts) {
         if (existing.userId === userId) {
            existingAccount = existing;
-           break;
         } else {
            // If it belongs to a DIFFERENT user, soft delete it to prevent hijacking
            await this.accountsRepo.softDelete(existing.id);
@@ -94,7 +92,12 @@ export class AccountsService {
       // 5. Save or Update in database
       if (existingAccount) {
         // Update the token on the existing account to preserve Automation Rules!
-        const account = await this.accountsRepo.update(existingAccount.id, accountData);
+        // We explicitly set deletedAt to null to "undelete" the account and reactivate it
+        const account = await this.accountsRepo.update(existingAccount.id, { 
+          ...accountData, 
+          isActive: true,
+          deletedAt: null 
+        });
         return account;
       } else {
         const account = await this.accountsRepo.create(accountData);
@@ -121,10 +124,11 @@ export class AccountsService {
     if (!account) throw new Error('Account not found');
     if (account.userId !== userId) throw new Error('Unauthorized');
     
-    // Instead of soft deleting (which hides the account and orphans the rules),
-    // we simply deactivate it. This way it still appears in the dashboard,
-    // the user can still see their rules, but webhooks won't process for it.
-    await this.accountsRepo.deactivate(accountId);
+    // We soft-delete the account. This hides it from the UI.
+    // We DO NOT touch the rules. The rules remain in the database linked to this account ID.
+    // If the user reconnects the same Instagram account, we will UN-soft-delete this account ID,
+    // and instantly all of their rules will be active again!
+    await this.accountsRepo.softDelete(accountId);
   }
 
   async getAccountMedia(userId: string, accountId: string) {

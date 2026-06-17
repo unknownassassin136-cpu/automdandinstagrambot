@@ -118,12 +118,22 @@
       <div class="space-y-6">
         <div class="card p-6">
           <h3 class="text-lg font-semibold text-[var(--color-text)] mb-2">Current Plan</h3>
-          <p class="text-sm text-[var(--color-text-secondary)] mb-6">You are currently on the <span class="font-bold text-[var(--color-primary)]">Pro Plan</span>. Your next billing date is Oct 1, 2026.</p>
+          @if (billingStatus) {
+            <p class="text-sm text-[var(--color-text-secondary)] mb-6">
+              You are currently on the <span class="font-bold text-[var(--color-primary)]">{{ billingStatus.planName }}</span>.
+              <br>
+              <span class="text-xs text-gray-500">
+                Usage: {{ billingStatus.currentReplies + billingStatus.currentDms }} / {{ billingStatus.monthlyLimit === -1 ? 'Unlimited' : billingStatus.monthlyLimit }} replies this month.
+              </span>
+            </p>
+          } @else {
+            <p class="text-sm text-[var(--color-text-secondary)] mb-6">Loading billing information...</p>
+          }
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             @for (plan of billingPlans; track plan.name) {
-              <div [ngClass]="plan.current ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]' : 'border-[var(--color-borders)]'" class="border rounded-xl p-4 relative">
-                @if (plan.current) {
+              <div [ngClass]="billingStatus?.planId === plan.id ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)] bg-indigo-50/30' : 'border-[var(--color-borders)] bg-white'" class="border rounded-xl p-4 relative transition-colors">
+                @if (billingStatus?.planId === plan.id) {
                   <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--color-primary)] text-white text-xs font-bold px-2 py-0.5 rounded-full">Current</span>
                 }
                 <h4 class="font-semibold text-[var(--color-text)]">{{ plan.name }}</h4>
@@ -136,8 +146,12 @@
                     </li>
                   }
                 </ul>
-                <button [ngClass]="plan.current ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'btn-secondary'" class="w-full mt-6 py-2 text-sm rounded-lg border font-medium transition-colors">
-                  {{ plan.current ? 'Current Plan' : 'Upgrade' }}
+                <button 
+                  (click)="upgradePlan(plan.id)"
+                  [disabled]="billingStatus?.planId === plan.id"
+                  [ngClass]="billingStatus?.planId === plan.id ? 'bg-indigo-100 text-indigo-700 font-bold cursor-default' : 'btn-secondary hover:border-indigo-500 hover:text-indigo-600'" 
+                  class="w-full mt-6 py-2 text-sm rounded-lg border font-medium transition-colors">
+                  {{ billingStatus?.planId === plan.id ? 'Current Plan' : 'Select Plan' }}
                 </button>
               </div>
             }

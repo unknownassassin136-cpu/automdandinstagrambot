@@ -1,8 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { environment } from '../../../environments/environment';
 import { AccountsService, ConnectedAccount } from '../../core/services/accounts.service';
+import { SubscriptionsService } from '../../core/services/subscriptions.service';
 
 @Component({
   selector: 'app-settings',
@@ -10,9 +11,10 @@ import { AccountsService, ConnectedAccount } from '../../core/services/accounts.
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './settings.component.html',
 })
-export class SettingsComponent {
+export class SettingsComponent implements OnInit {
   private fb = inject(FormBuilder);
   private accountsService = inject(AccountsService);
+  private subsService = inject(SubscriptionsService);
   activeTab = 'profile';
   
   connectedAccounts: ConnectedAccount[] = [];
@@ -23,10 +25,12 @@ export class SettingsComponent {
     email: ['jane@acme.com', [Validators.required, Validators.email]]
   });
 
+  billingStatus: any = null;
+  
   billingPlans = [
-    { name: 'Free', price: '$0', features: ['1 Instagram Account', '100 Auto-replies/mo'], current: false },
-    { name: 'Pro', price: '$29/mo', features: ['5 Instagram Accounts', '10,000 Auto-replies/mo', 'Priority Support'], current: true },
-    { name: 'Enterprise', price: '$99/mo', features: ['Unlimited Accounts', 'Unlimited Replies', 'Dedicated Manager'], current: false }
+    { id: 'free', name: 'Free', price: '$0', features: ['1 Instagram Account', '3 Automation Rules', '10 Auto-replies/mo'] },
+    { id: 'plus', name: 'Plus', price: '$29/mo', features: ['1 Instagram Account', '5 Automation Rules', '20 Auto-replies/mo'] },
+    { id: 'pro', name: 'Pro', price: '$99/mo', features: ['Unlimited Accounts', 'Unlimited Automations', 'Unlimited Replies'] }
   ];
 
   sessions = [
@@ -34,8 +38,9 @@ export class SettingsComponent {
     { device: 'iPhone 14 Pro (Safari)', location: 'San Francisco, CA', time: 'Last active 2 hours ago', current: false }
   ];
 
-  constructor() {
+  ngOnInit() {
     this.loadAccounts();
+    this.loadBilling();
   }
 
   loadAccounts() {
@@ -43,6 +48,28 @@ export class SettingsComponent {
       next: (accounts) => this.connectedAccounts = accounts,
       error: (err: any) => console.error('Failed to load accounts', err)
     });
+  }
+
+  loadBilling() {
+    this.subsService.getBillingStatus().subscribe({
+      next: (status) => this.billingStatus = status,
+      error: (err: any) => console.error('Failed to load billing status', err)
+    });
+  }
+
+  upgradePlan(planId: string) {
+    if (confirm(`Mock Upgrade: Are you sure you want to switch to the ${planId} plan?`)) {
+      this.subsService.mockUpgrade(planId).subscribe({
+        next: (status) => {
+          this.billingStatus = status;
+          alert(`Successfully switched to ${status.planName}`);
+        },
+        error: (err: any) => {
+          console.error('Failed to upgrade', err);
+          alert('Failed to upgrade plan');
+        }
+      });
+    }
   }
 
   loginWithInstagram() {

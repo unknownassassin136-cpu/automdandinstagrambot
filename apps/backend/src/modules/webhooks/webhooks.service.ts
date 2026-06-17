@@ -1,6 +1,8 @@
 import { WebhooksRepository } from './webhooks.repository';
 import { RulesRepository } from '../automations/rules.repository';
 import { AccountsRepository } from '../accounts/accounts.repository';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+import { AnalyticsService } from '../analytics/analytics.service';
 import crypto from 'crypto';
 import { env } from '../../config/env';
 import axios from 'axios';
@@ -10,7 +12,9 @@ export class WebhooksService {
   constructor(
     private webhooksRepo: WebhooksRepository = new WebhooksRepository(),
     private rulesRepo: RulesRepository = new RulesRepository(),
-    private accountsRepo: AccountsRepository = new AccountsRepository()
+    private accountsRepo: AccountsRepository = new AccountsRepository(),
+    private subsService: SubscriptionsService = new SubscriptionsService(),
+    private analyticsService: AnalyticsService = new AnalyticsService()
   ) {}
 
   verifySignature(signature: string, payload: Buffer): boolean {
@@ -86,6 +90,17 @@ export class WebhooksService {
         
         if (finalRule && finalRule.dmTemplateText) {
           console.log(`[Webhooks] Matched Rule: ${finalRule.triggerKeyword || 'DEFAULT'} for DM: ${messageText}`);
+
+          // Check Subscription Limits
+          const billingStatus = await this.subsService.getBillingStatus(internalAccount.userId);
+          const totalUsage = billingStatus.currentReplies + billingStatus.currentDms;
+          
+          if (billingStatus.monthlyLimit !== -1 && totalUsage >= billingStatus.monthlyLimit) {
+            console.warn(`[Webhooks] Limit Reached for user ${internalAccount.userId}. Skipping DM.`);
+            await this.analyticsService.logAction(internalAccount.id, finalRule.id, 'dm', 'failed', 'Subscription limit reached');
+            continue;
+          }
+
           try {
             // Direct Instagram API for DM Replies
             await axios.post(`https://graph.instagram.com/v22.0/me/messages`, {
@@ -95,8 +110,11 @@ export class WebhooksService {
               headers: { Authorization: `Bearer ${accessToken}` }
             });
             console.log(`[Webhooks] Sent DM Reply to ${senderId}`);
+            await this.analyticsService.incrementUsage(internalAccount.userId, 'dm');
+            await this.analyticsService.logAction(internalAccount.id, finalRule.id, 'dm', 'success');
           } catch (err: any) {
             console.error(`[Webhooks] Failed to send DM reply:`, err.response?.data || err.message);
+            await this.analyticsService.logAction(internalAccount.id, finalRule.id, 'dm', 'failed', err.message);
           }
         }
       }
@@ -127,6 +145,16 @@ export class WebhooksService {
             if (finalRule) {
               console.log(`[Webhooks] Matched Rule: ${finalRule.triggerKeyword || 'DEFAULT'} for comment: ${commentText}`);
               
+              // Check Subscription Limits
+              const billingStatus = await this.subsService.getBillingStatus(internalAccount.userId);
+              const totalUsage = billingStatus.currentReplies + billingStatus.currentDms;
+              
+              if (billingStatus.monthlyLimit !== -1 && totalUsage >= billingStatus.monthlyLimit) {
+                console.warn(`[Webhooks] Limit Reached for user ${internalAccount.userId}. Skipping comment reply.`);
+                await this.analyticsService.logAction(internalAccount.id, finalRule.id, 'comment_reply', 'failed', 'Subscription limit reached');
+                continue;
+              }
+
               // 2a. Send Public Comment Reply
               if (finalRule.replyCommentText) {
                 try {
@@ -137,8 +165,11 @@ export class WebhooksService {
                     headers: { Authorization: `Bearer ${accessToken}` }
                   });
                   console.log(`[Webhooks] Replied to comment ${commentId}`);
+                  await this.analyticsService.incrementUsage(internalAccount.userId, 'reply');
+                  await this.analyticsService.logAction(internalAccount.id, finalRule.id, 'comment_reply', 'success');
                 } catch (err: any) {
                   console.error(`[Webhooks] Failed to reply to comment ${commentId}:`, err.response?.data || err.message);
+                  await this.analyticsService.logAction(internalAccount.id, finalRule.id, 'comment_reply', 'failed', err.message);
                 }
               }
 
@@ -153,8 +184,11 @@ export class WebhooksService {
                     headers: { Authorization: `Bearer ${accessToken}` }
                   });
                   console.log(`[Webhooks] Sent DM (Private Reply) for comment ${commentId}`);
+                  await this.analyticsService.incrementUsage(internalAccount.userId, 'dm');
+                  await this.analyticsService.logAction(internalAccount.id, finalRule.id, 'dm', 'success');
                 } catch (err: any) {
                   console.error(`[Webhooks] Failed to send DM for comment ${commentId}:`, err.response?.data || err.message);
+                  await this.analyticsService.logAction(internalAccount.id, finalRule.id, 'dm', 'failed', err.message);
                 }
               }
             }

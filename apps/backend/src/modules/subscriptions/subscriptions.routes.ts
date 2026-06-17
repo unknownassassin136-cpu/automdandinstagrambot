@@ -7,4 +7,5 @@ const controller = new SubscriptionsController();
 
 subscriptionsRouter.use(authMiddleware);
 
-subscriptionsRouter.get('/me', controller.getSubscription);
+subscriptionsRouter.get('/status', controller.getBillingStatus);
+subscriptionsRouter.post('/mock-upgrade', controller.mockUpgrade);
