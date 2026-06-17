@@ -32,6 +32,14 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/oauth/callback/callback.component').then(c => c.CallbackComponent)
   },
   {
+    path: 'privacy',
+    loadComponent: () => import('./pages/public/privacy.component').then(c => c.PrivacyComponent)
+  },
+  {
+    path: 'data-deletion',
+    loadComponent: () => import('./pages/public/data-deletion.component').then(c => c.DataDeletionComponent)
+  },
+  {
     path: 'admin',
     component: AdminLayoutComponent,
     children: [
