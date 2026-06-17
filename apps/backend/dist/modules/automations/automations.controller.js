@@ -16,6 +16,7 @@ class AutomationsController {
             res.status(201).json(rule);
         }
         catch (err) {
+            console.error('[createRule Error]:', err);
             res.status(400).json({ error: err.message });
         }
     };

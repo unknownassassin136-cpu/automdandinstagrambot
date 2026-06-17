@@ -16,63 +16,94 @@ class AccountsService {
     async connectAccount(userId, authCode) {
         try {
             // 1. Exchange authCode for short-lived access token
-            const tokenRes = await axios_1.default.get('https://graph.facebook.com/v19.0/oauth/access_token', {
-                params: {
-                    client_id: env_1.env.META_APP_ID,
-                    client_secret: env_1.env.META_APP_SECRET,
-                    redirect_uri: env_1.env.FRONTEND_URL + '/oauth/callback',
-                    code: authCode,
-                }
+            const tokenForm = new URLSearchParams();
+            tokenForm.append('client_id', env_1.env.INSTAGRAM_APP_ID);
+            tokenForm.append('client_secret', env_1.env.INSTAGRAM_APP_SECRET);
+            tokenForm.append('grant_type', 'authorization_code');
+            tokenForm.append('redirect_uri', env_1.env.FRONTEND_URL + '/oauth/callback');
+            tokenForm.append('code', authCode);
+            const tokenRes = await axios_1.default.post('https://api.instagram.com/oauth/access_token', tokenForm.toString(), {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             });
             const shortLivedToken = tokenRes.data.access_token;
+            const igUserId = tokenRes.data.user_id;
             // 2. Exchange for long-lived access token
-            const longLivedRes = await axios_1.default.get('https://graph.facebook.com/v19.0/oauth/access_token', {
+            const longLivedRes = await axios_1.default.get('https://graph.instagram.com/access_token', {
                 params: {
-                    grant_type: 'fb_exchange_token',
-                    client_id: env_1.env.META_APP_ID,
-                    client_secret: env_1.env.META_APP_SECRET,
-                    fb_exchange_token: shortLivedToken,
+                    grant_type: 'ig_exchange_token',
+                    client_secret: env_1.env.INSTAGRAM_APP_SECRET,
+                    access_token: shortLivedToken,
                 }
             });
             const longLivedToken = longLivedRes.data.access_token;
             // Calculate token expiry (usually 60 days)
             const expiresIn = longLivedRes.data.expires_in || (60 * 24 * 60 * 60);
             const tokenExpiresAt = new Date(Date.now() + expiresIn * 1000);
-            // 3. Get user pages
-            const pagesRes = await axios_1.default.get('https://graph.facebook.com/v19.0/me/accounts', {
-                params: { access_token: longLivedToken }
-            });
-            const page = pagesRes.data.data[0]; // For MVP, grab the first connected page
-            if (!page)
-                throw new Error('No Facebook pages found');
-            const pageAccessToken = page.access_token;
-            const pageId = page.id;
-            const pageName = page.name;
-            // 4. Get connected Instagram account
-            const igRes = await axios_1.default.get(`https://graph.facebook.com/v19.0/${pageId}`, {
+            // 3. Get Instagram User Profile
+            const igRes = await axios_1.default.get(`https://graph.instagram.com/v21.0/me`, {
                 params: {
-                    fields: 'instagram_business_account{id,username}',
-                    access_token: pageAccessToken
+                    fields: 'id,username,name',
+                    access_token: longLivedToken
                 }
             });
-            const igAccount = igRes.data.instagram_business_account;
-            if (!igAccount)
-                throw new Error('No linked Instagram business account found on this page');
+            const igAccount = igRes.data;
+            if (!igAccount || !igAccount.id)
+                throw new Error('Could not fetch Instagram account profile');
+            // 4. Automatically subscribe the Instagram account to webhooks
+            try {
+                await axios_1.default.post('https://graph.instagram.com/v21.0/me/subscribed_apps', null, {
+                    params: { subscribed_fields: 'messages,comments' },
+                    headers: { Authorization: `Bearer ${longLivedToken}` }
+                });
+                console.log(`✓ Successfully subscribed account ${igAccount.username} to messages/comments webhooks`);
+            }
+            catch (subErr) {
+                console.error('Failed to automatically subscribe account to webhooks:', subErr.response?.data || subErr.message);
+                // We don't throw here, as they might have a Creator account that doesn't permit it,
+                // but we still want to save the account so they can at least use other features.
+            }
             // 5. Encrypt token and store in DB
-            const encryptedToken = (0, encryption_1.encrypt)(pageAccessToken);
-            return await this.accountsRepo.create({
+            const instagramId = igAccount.id.toString(); // Ensure string
+            const accountData = {
                 userId,
-                facebookPageId: pageId,
-                instagramBusinessAccountId: igAccount.id,
-                pageName,
-                instagramUsername: igAccount.username,
-                encryptedPageAccessToken: encryptedToken,
+                facebookPageId: null, // Nullable now
+                instagramBusinessAccountId: instagramId,
+                pageName: null,
+                instagramUsername: igAccount.username || igAccount.name || 'Unknown',
+                encryptedPageAccessToken: (0, encryption_1.encrypt)(longLivedToken),
                 tokenExpiresAt,
-            });
+            };
+            // Soft delete any existing connection for this instagram account that belong to OTHER users
+            const existingAccounts = await this.accountsRepo.findByInstagramId(instagramId, true); // true to include deleted
+            let existingAccount = null;
+            for (const existing of existingAccounts) {
+                if (existing.userId === userId) {
+                    existingAccount = existing;
+                }
+                else {
+                    // If it belongs to a DIFFERENT user, soft delete it to prevent hijacking
+                    await this.accountsRepo.softDelete(existing.id);
+                }
+            }
+            // 5. Save or Update in database
+            if (existingAccount) {
+                // Update the token on the existing account to preserve Automation Rules!
+                // We explicitly set deletedAt to null to "undelete" the account and reactivate it
+                const account = await this.accountsRepo.update(existingAccount.id, {
+                    ...accountData,
+                    isActive: true,
+                    deletedAt: null
+                });
+                return account;
+            }
+            else {
+                const account = await this.accountsRepo.create(accountData);
+                return account;
+            }
         }
         catch (err) {
-            console.error('Meta OAuth Error:', err.response?.data || err.message);
-            throw new Error('Failed to connect Meta account');
+            console.error('Meta/Instagram OAuth Error:', err.response?.data || err.message);
+            throw new Error('Failed to connect Instagram account');
         }
     }
     async getConnectedAccounts(userId) {
@@ -89,6 +120,10 @@ class AccountsService {
             throw new Error('Account not found');
         if (account.userId !== userId)
             throw new Error('Unauthorized');
+        // We soft-delete the account. This hides it from the UI.
+        // We DO NOT touch the rules. The rules remain in the database linked to this account ID.
+        // If the user reconnects the same Instagram account, we will UN-soft-delete this account ID,
+        // and instantly all of their rules will be active again!
         await this.accountsRepo.softDelete(accountId);
     }
     async getAccountMedia(userId, accountId) {
@@ -100,7 +135,7 @@ class AccountsService {
         const accessToken = (0, encryption_1.decrypt)(account.encryptedPageAccessToken);
         const igAccountId = account.instagramBusinessAccountId;
         try {
-            const res = await axios_1.default.get(`https://graph.facebook.com/v19.0/${igAccountId}/media`, {
+            const res = await axios_1.default.get(`https://graph.instagram.com/v21.0/me/media`, {
                 params: {
                     fields: 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp',
                     access_token: accessToken,

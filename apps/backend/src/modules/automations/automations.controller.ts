@@ -14,6 +14,7 @@ export class AutomationsController {
       const rule = await this.rulesService.createRule(userId, req.body);
       res.status(201).json(rule);
     } catch (err: any) {
+      console.error('[createRule Error]:', err);
       res.status(400).json({ error: err.message });
     }
   };

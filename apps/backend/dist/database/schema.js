@@ -49,7 +49,7 @@ exports.subscriptions = (0, pg_core_1.pgTable)('subscriptions', {
 exports.connectedAccounts = (0, pg_core_1.pgTable)('connected_accounts', {
     id: (0, pg_core_1.uuid)('id').primaryKey().defaultRandom(),
     userId: (0, pg_core_1.uuid)('user_id').references(() => exports.users.id, { onDelete: 'cascade' }),
-    facebookPageId: (0, pg_core_1.varchar)('facebook_page_id', { length: 100 }).notNull(),
+    facebookPageId: (0, pg_core_1.varchar)('facebook_page_id', { length: 100 }),
     instagramBusinessAccountId: (0, pg_core_1.varchar)('instagram_business_account_id', { length: 100 }).notNull(),
     pageName: (0, pg_core_1.varchar)('page_name', { length: 255 }),
     instagramUsername: (0, pg_core_1.varchar)('instagram_username', { length: 255 }),

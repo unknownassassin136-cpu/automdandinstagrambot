@@ -12,14 +12,19 @@ class AnalyticsService {
             .from(schema_1.usageTracking)
             .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.usageTracking.userId, userId), (0, drizzle_orm_1.eq)(schema_1.usageTracking.month, currentMonth)));
         // 2. Get connected accounts count
-        const [{ count }] = await db_1.db.select({ count: (0, drizzle_orm_1.sql) `count(*)` })
+        const [{ count: accountsCount }] = await db_1.db.select({ count: (0, drizzle_orm_1.sql) `count(*)` })
             .from(schema_1.connectedAccounts)
             .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.connectedAccounts.userId, userId), (0, drizzle_orm_1.sql) `deleted_at IS NULL`));
+        // 3. Get total active automation rules across all connected accounts for this user
+        const [{ count: rulesCount }] = await db_1.db.select({ count: (0, drizzle_orm_1.sql) `count(*)` })
+            .from(schema_1.automationRules)
+            .innerJoin(schema_1.connectedAccounts, (0, drizzle_orm_1.eq)(schema_1.automationRules.accountId, schema_1.connectedAccounts.id))
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.connectedAccounts.userId, userId), (0, drizzle_orm_1.eq)(schema_1.automationRules.isActive, true), (0, drizzle_orm_1.sql) `automation_rules.deleted_at IS NULL`));
         return {
             repliesSent: usage?.replyCount || 0,
             dmsSent: usage?.dmCount || 0,
-            totalAutomations: (usage?.replyCount || 0) + (usage?.dmCount || 0),
-            connectedAccounts: Number(count) || 0,
+            totalAutomations: Number(rulesCount) || 0,
+            connectedAccounts: Number(accountsCount) || 0,
         };
     }
     async getRecentLogs(userId, limit = 10) {
@@ -37,6 +42,38 @@ class AnalyticsService {
             .where((0, drizzle_orm_1.eq)(schema_1.connectedAccounts.userId, userId))
             .orderBy((0, drizzle_orm_1.desc)(schema_1.automationLogs.createdAt))
             .limit(limit);
+    }
+    async incrementUsage(userId, type) {
+        const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+        // Check if record exists
+        const [existing] = await db_1.db.select()
+            .from(schema_1.usageTracking)
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.usageTracking.userId, userId), (0, drizzle_orm_1.eq)(schema_1.usageTracking.month, currentMonth)));
+        if (existing) {
+            await db_1.db.update(schema_1.usageTracking)
+                .set({
+                replyCount: type === 'reply' ? existing.replyCount + 1 : existing.replyCount,
+                dmCount: type === 'dm' ? existing.dmCount + 1 : existing.dmCount,
+            })
+                .where((0, drizzle_orm_1.eq)(schema_1.usageTracking.id, existing.id));
+        }
+        else {
+            await db_1.db.insert(schema_1.usageTracking).values({
+                userId,
+                month: currentMonth,
+                replyCount: type === 'reply' ? 1 : 0,
+                dmCount: type === 'dm' ? 1 : 0,
+            });
+        }
+    }
+    async logAction(accountId, ruleId, actionType, status, errorMessage) {
+        await db_1.db.insert(schema_1.automationLogs).values({
+            accountId,
+            ruleId,
+            actionType,
+            status,
+            errorMessage,
+        });
     }
 }
 exports.AnalyticsService = AnalyticsService;

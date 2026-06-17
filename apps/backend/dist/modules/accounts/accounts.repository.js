@@ -25,7 +25,24 @@ class AccountsRepository {
             .set({ deletedAt: new Date(), isActive: false })
             .where((0, drizzle_orm_1.eq)(schema_1.connectedAccounts.id, accountId));
     }
-    async findByInstagramId(instagramId) {
+    async deactivate(accountId) {
+        await db_1.db.update(schema_1.connectedAccounts)
+            .set({ isActive: false })
+            .where((0, drizzle_orm_1.eq)(schema_1.connectedAccounts.id, accountId));
+    }
+    async update(accountId, data) {
+        const [account] = await db_1.db.update(schema_1.connectedAccounts)
+            .set(data)
+            .where((0, drizzle_orm_1.eq)(schema_1.connectedAccounts.id, accountId))
+            .returning();
+        return account;
+    }
+    async findByInstagramId(instagramId, includeDeleted = false) {
+        if (includeDeleted) {
+            return db_1.db.select()
+                .from(schema_1.connectedAccounts)
+                .where((0, drizzle_orm_1.eq)(schema_1.connectedAccounts.instagramBusinessAccountId, instagramId));
+        }
         return db_1.db.select()
             .from(schema_1.connectedAccounts)
             .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.connectedAccounts.instagramBusinessAccountId, instagramId), (0, drizzle_orm_1.isNull)(schema_1.connectedAccounts.deletedAt)));

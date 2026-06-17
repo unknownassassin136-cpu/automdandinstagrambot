@@ -10,6 +10,7 @@ const redis_1 = require("./config/redis");
 const database_1 = require("./config/database");
 const usage_reset_cron_1 = require("./cron/usage-reset.cron");
 const ngrok_1 = __importDefault(require("@ngrok/ngrok"));
+// Triggering hot-reload to pick up new .env variables
 async function bootstrap() {
     // Step 1: Validate environment (crashes immediately if invalid)
     const env = (0, env_1.validateEnv)();

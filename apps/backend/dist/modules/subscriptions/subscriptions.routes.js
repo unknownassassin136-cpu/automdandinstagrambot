@@ -7,4 +7,5 @@ const auth_middleware_1 = require("../../middleware/auth.middleware");
 exports.subscriptionsRouter = (0, express_1.Router)();
 const controller = new subscriptions_controller_1.SubscriptionsController();
 exports.subscriptionsRouter.use(auth_middleware_1.authMiddleware);
-exports.subscriptionsRouter.get('/me', controller.getSubscription);
+exports.subscriptionsRouter.get('/status', controller.getBillingStatus);
+exports.subscriptionsRouter.post('/mock-upgrade', controller.mockUpgrade);
