@@ -121,7 +121,10 @@ export class AccountsService {
     if (!account) throw new Error('Account not found');
     if (account.userId !== userId) throw new Error('Unauthorized');
     
-    await this.accountsRepo.softDelete(accountId);
+    // Instead of soft deleting (which hides the account and orphans the rules),
+    // we simply deactivate it. This way it still appears in the dashboard,
+    // the user can still see their rules, but webhooks won't process for it.
+    await this.accountsRepo.deactivate(accountId);
   }
 
   async getAccountMedia(userId: string, accountId: string) {

@@ -45,6 +45,12 @@ export class AccountsRepository {
       .where(eq(connectedAccounts.id, accountId));
   }
 
+  async deactivate(accountId: string) {
+    await db.update(connectedAccounts)
+      .set({ isActive: false })
+      .where(eq(connectedAccounts.id, accountId));
+  }
+
   async update(accountId: string, data: Partial<typeof connectedAccounts.$inferInsert>) {
     const [account] = await db.update(connectedAccounts)
       .set(data)
