@@ -86,6 +86,10 @@ export class WebhooksService {
         await this.webhooksRepo.logEvent(eventId, msgEvent, internalAccount.id);
         await this.webhooksRepo.markEventAsProcessed(eventId);
         
+        // We log the incoming DM above for Analytics, but we DO NOT evaluate rules 
+        // against it, and we DO NOT send any automated replies to incoming DMs.
+        // This prevents infinite bot loops and ensures the bot only triggers from comments.
+        /*
         const finalRule = await this.matchRule(internalAccount.id, messageText, null);
         
         if (finalRule && finalRule.dmTemplateText) {
@@ -117,6 +121,7 @@ export class WebhooksService {
             await this.analyticsService.logAction(internalAccount.id, finalRule.id as string, 'dm', 'failed', err.message);
           }
         }
+        */
       }
 
       // 2. Process Comments
