@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { StatsCardComponent } from '../../components/stats-card/stats-card.component';
 import { CommonModule, DatePipe } from '@angular/common';
 import { AnalyticsService } from '../../core/services/analytics.service';
@@ -15,7 +15,10 @@ export class DashboardComponent implements OnInit {
   stats: any[] = [];
   recentActivity: any[] = [];
 
-  constructor(private analyticsService: AnalyticsService) {}
+  constructor(
+    private analyticsService: AnalyticsService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     this.loadDashboardData();
@@ -53,11 +56,13 @@ export class DashboardComponent implements OnInit {
           }
         ];
         console.log('Stats mapped:', this.stats);
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error fetching stats:', err);
         // Fallback to empty stats so it doesn't break
         this.stats = [];
+        this.cdr.detectChanges();
       }
     });
 
@@ -65,14 +70,18 @@ export class DashboardComponent implements OnInit {
     this.analyticsService.getRecentLogs().subscribe({
       next: (logs) => {
         console.log('Recent Logs Received:', logs);
-        this.recentActivity = (logs || []).map(log => ({
+        this.recentActivity = (logs || []).map((log: any) => ({
           type: log.actionType.includes('comment') ? 'comment' : log.actionType.includes('dm') ? 'dm' : 'system',
           account: log.accountName || 'Unknown Account',
           rule: log.status === 'success' ? 'Successful' : `Failed: ${log.errorMessage}`,
           time: log.createdAt
         }));
+        this.cdr.detectChanges();
       },
-      error: (err) => console.error('Error fetching logs', err)
+      error: (err) => {
+        console.error('Error fetching logs', err);
+        this.cdr.detectChanges();
+      }
     });
   }
 }
