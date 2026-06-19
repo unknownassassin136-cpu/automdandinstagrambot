@@ -10,9 +10,6 @@
       <button (click)="switchTab('profile')" [ngClass]="activeTab === 'profile' ? 'bg-indigo-50 text-[var(--color-primary)] font-semibold' : 'text-[var(--color-text-secondary)] hover:bg-gray-50'" class="w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors">
         Profile
       </button>
-      <button (click)="switchTab('accounts')" [ngClass]="activeTab === 'accounts' ? 'bg-indigo-50 text-[var(--color-primary)] font-semibold' : 'text-[var(--color-text-secondary)] hover:bg-gray-50'" class="w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors">
-        Connected Accounts
-      </button>
       <button (click)="switchTab('billing')" [ngClass]="activeTab === 'billing' ? 'bg-indigo-50 text-[var(--color-primary)] font-semibold' : 'text-[var(--color-text-secondary)] hover:bg-gray-50'" class="w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors">
         Billing & Plan
       </button>
@@ -57,59 +54,6 @@
             <button type="submit" [disabled]="!profileForm.valid" class="btn-primary">Save Changes</button>
           </div>
         </form>
-      </div>
-    }
-
-    <!-- Accounts Tab -->
-    @if (activeTab === 'accounts') {
-      <div class="space-y-6">
-        <div class="card p-6">
-          <div class="flex items-center justify-between mb-6">
-            <div>
-              <h3 class="text-lg font-semibold text-[var(--color-text)]">Instagram Integration</h3>
-              <p class="text-sm text-[var(--color-text-secondary)]">Connect your Instagram Business accounts directly to enable automations.</p>
-            </div>
-            <button (click)="loginWithInstagram()" class="btn-primary flex items-center gap-2">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 15a5 5 0 110-10 5 5 0 010 10z" />
-              </svg>
-              Connect Instagram Account
-            </button>
-          </div>
-
-          @if (connectedAccounts.length > 0) {
-            <div class="divide-y divide-[var(--color-borders)] border border-[var(--color-borders)] rounded-lg overflow-hidden">
-              @for (acc of connectedAccounts; track acc.id) {
-                <div class="p-4 flex items-center justify-between bg-white hover:bg-gray-50 transition-colors">
-                  <div class="flex items-center gap-4">
-                    <div class="h-10 w-10 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-                      @
-                    </div>
-                    <div>
-                      <p class="font-medium text-[var(--color-text)]">{{ acc.instagramUsername }}</p>
-                      <p class="text-xs text-[var(--color-text-secondary)]">Linked via {{ acc.pageName }}</p>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-4">
-                    <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-green-50 text-green-700">
-                      <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                      Active
-                    </span>
-                    <button (click)="disconnectAccount(acc.id)" class="text-[var(--color-danger)] text-sm font-medium hover:underline">Disconnect</button>
-                  </div>
-                </div>
-              }
-            </div>
-          } @else {
-            <div class="border-2 border-dashed border-[var(--color-borders)] rounded-xl p-8 text-center bg-gray-50/50">
-              <div class="mx-auto w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mb-3">
-                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-              </div>
-              <h4 class="text-[var(--color-text)] font-semibold mb-1">No Accounts Connected</h4>
-              <p class="text-sm text-[var(--color-text-secondary)] mb-4">You need to connect an Instagram account to create automations.</p>
-            </div>
-          }
-        </div>
       </div>
     }
 

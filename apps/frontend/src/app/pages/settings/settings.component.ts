@@ -2,7 +2,6 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { environment } from '../../../environments/environment';
-import { AccountsService, ConnectedAccount } from '../../core/services/accounts.service';
 import { SubscriptionsService } from '../../core/services/subscriptions.service';
 
 @Component({
@@ -13,11 +12,8 @@ import { SubscriptionsService } from '../../core/services/subscriptions.service'
 })
 export class SettingsComponent implements OnInit {
   private fb = inject(FormBuilder);
-  private accountsService = inject(AccountsService);
   private subsService = inject(SubscriptionsService);
   activeTab = 'profile';
-  
-  connectedAccounts: ConnectedAccount[] = [];
 
   profileForm = this.fb.group({
     companyName: ['Acme Corp', Validators.required],
@@ -39,15 +35,7 @@ export class SettingsComponent implements OnInit {
   ];
 
   ngOnInit() {
-    this.loadAccounts();
     this.loadBilling();
-  }
-
-  loadAccounts() {
-    this.accountsService.getAccounts().subscribe({
-      next: (accounts) => this.connectedAccounts = accounts,
-      error: (err: any) => console.error('Failed to load accounts', err)
-    });
   }
 
   loadBilling() {
@@ -72,31 +60,12 @@ export class SettingsComponent implements OnInit {
     }
   }
 
-  loginWithInstagram() {
-    const clientId = environment.instagramAppId;
-    const redirectUri = encodeURIComponent(`${window.location.origin}/oauth/callback`);
-    const scopes = 'instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments';
-    const oauthUrl = `https://www.instagram.com/oauth/authorize?enable_fb_login=0&force_authentication=1&client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scopes}`;
-    
-    window.location.href = oauthUrl;
-  }
-
   switchTab(tab: string) {
     this.activeTab = tab;
   }
 
-  disconnectAccount(accountId: string) {
-    if (confirm('Are you sure you want to disconnect this Instagram account? This will stop all active automations.')) {
-      this.accountsService.disconnectAccount(accountId).subscribe({
-        next: () => {
-          this.connectedAccounts = this.connectedAccounts.filter(acc => acc.id !== accountId);
-        },
-        error: (err: any) => console.error('Failed to disconnect account', err)
-      });
-    }
-  }
-
   saveProfile() {
     console.log('Profile saved', this.profileForm.value);
+    alert('Profile saved successfully!');
   }
 }

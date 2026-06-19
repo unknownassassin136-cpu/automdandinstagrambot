@@ -24,6 +24,7 @@ export const routes: Routes = [
       { path: 'automations', loadComponent: () => import('./pages/automations/list/list.component').then(c => c.AutomationsListComponent) },
       { path: 'automations/new', loadComponent: () => import('./pages/automations/builder/builder.component').then(c => c.BuilderComponent) },
       { path: 'automations/edit/:id', loadComponent: () => import('./pages/automations/builder/builder.component').then(c => c.BuilderComponent) },
+      { path: 'accounts', loadComponent: () => import('./pages/accounts/accounts.component').then(c => c.AccountsComponent) },
       { path: 'settings', loadComponent: () => import('./pages/settings/settings.component').then(c => c.SettingsComponent) }
     ]
   },
