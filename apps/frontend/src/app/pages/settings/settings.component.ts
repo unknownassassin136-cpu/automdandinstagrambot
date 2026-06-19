@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { environment } from '../../../environments/environment';
@@ -13,6 +13,7 @@ import { SubscriptionsService } from '../../core/services/subscriptions.service'
 export class SettingsComponent implements OnInit {
   private fb = inject(FormBuilder);
   private subsService = inject(SubscriptionsService);
+  private cdr = inject(ChangeDetectorRef);
   activeTab = 'profile';
 
   profileForm = this.fb.group({
@@ -40,7 +41,10 @@ export class SettingsComponent implements OnInit {
 
   loadBilling() {
     this.subsService.getBillingStatus().subscribe({
-      next: (status) => this.billingStatus = status,
+      next: (status) => {
+        this.billingStatus = status;
+        this.cdr.detectChanges();
+      },
       error: (err: any) => console.error('Failed to load billing status', err)
     });
   }

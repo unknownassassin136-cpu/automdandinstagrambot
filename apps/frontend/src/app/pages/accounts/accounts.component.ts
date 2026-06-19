@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { environment } from '../../../environments/environment';
 import { AccountsService, ConnectedAccount } from '../../core/services/accounts.service';
@@ -11,6 +11,7 @@ import { AccountsService, ConnectedAccount } from '../../core/services/accounts.
 })
 export class AccountsComponent implements OnInit {
   private accountsService = inject(AccountsService);
+  private cdr = inject(ChangeDetectorRef);
   
   connectedAccounts: ConnectedAccount[] = [];
 
@@ -20,7 +21,10 @@ export class AccountsComponent implements OnInit {
 
   loadAccounts() {
     this.accountsService.getAccounts().subscribe({
-      next: (accounts) => this.connectedAccounts = accounts,
+      next: (accounts) => {
+        this.connectedAccounts = accounts;
+        this.cdr.detectChanges();
+      },
       error: (err: any) => console.error('Failed to load accounts', err)
     });
   }
