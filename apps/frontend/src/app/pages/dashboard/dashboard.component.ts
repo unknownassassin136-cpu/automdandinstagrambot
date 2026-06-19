@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { StatsCardComponent } from '../../components/stats-card/stats-card.component';
 import { CommonModule, DatePipe } from '@angular/common';
 import { AnalyticsService } from '../../core/services/analytics.service';
@@ -9,11 +9,12 @@ import { AnalyticsService } from '../../core/services/analytics.service';
   imports: [CommonModule, StatsCardComponent, DatePipe],
   templateUrl: './dashboard.component.html',
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   today = new Date();
   
   stats: any[] = [];
   recentActivity: any[] = [];
+  private pollingInterval: any;
 
   constructor(
     private analyticsService: AnalyticsService,
@@ -22,6 +23,16 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit() {
     this.loadDashboardData();
+    // Poll every 30 seconds to keep stats live and prevent backend from sleeping
+    this.pollingInterval = setInterval(() => {
+      this.loadDashboardData();
+    }, 30000);
+  }
+
+  ngOnDestroy() {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
   }
 
   loadDashboardData() {
