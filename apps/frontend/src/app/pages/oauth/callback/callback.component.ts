@@ -20,7 +20,7 @@ import { AccountsService } from '../../../core/services/accounts.service';
           </div>
           <h2 class="text-xl font-bold text-[var(--color-text)] mb-2">Connection Failed</h2>
           <p class="text-[var(--color-danger)] mb-6">{{ error }}</p>
-          <button (click)="goBack()" class="btn-primary w-full">Back to Settings</button>
+          <button (click)="goBack()" class="btn-primary w-full">Back to Accounts</button>
         } @else {
           <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
             <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -64,9 +64,9 @@ export class CallbackComponent implements OnInit {
       this.accountsService.connectAccount(code).subscribe({
         next: (account) => {
           this.loading = false;
-          // Successfully connected, redirect back to settings after a short delay
+          // Successfully connected, redirect back to accounts after a short delay
           setTimeout(() => {
-            this.router.navigate(['/settings']);
+            this.router.navigate(['/accounts']);
           }, 1500);
         },
         error: (err) => {
@@ -78,6 +78,6 @@ export class CallbackComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/settings']);
+    this.router.navigate(['/accounts']);
   }
 }
