@@ -206,28 +206,37 @@ export class WebhooksService {
   private async matchRule(accountId: string, text: string, mediaId: string | null) {
     const rules = await this.rulesRepo.findByAccountId(accountId);
     let matchedRule = null;
-    let defaultRule = null;
+    let globalDefaultRule = null;
+    let mediaDefaultRule = null;
     let bestMatchScore = -1;
 
     for (const rule of rules) {
       if (!rule.isActive) continue;
 
-      if ((rule as any).isDefaultRule) {
-        defaultRule = rule;
-        continue;
-      }
-
       const hasSpecificMedia = !!(rule as any).targetMediaId;
       const matchesSpecificMedia = hasSpecificMedia && (rule as any).targetMediaId === mediaId;
       
+      // If the rule is for a specific media, but this comment/DM is NOT on that media, ignore it entirely
       if (hasSpecificMedia && !matchesSpecificMedia) continue;
+      // If the rule is for a specific media, but this is a DM (mediaId is null), ignore it
       if (hasSpecificMedia && !mediaId) continue;
 
+      // Handle Default Catch-All Rules
+      if ((rule as any).isDefaultRule) {
+        if (hasSpecificMedia) {
+          mediaDefaultRule = rule;
+        } else {
+          globalDefaultRule = rule;
+        }
+        continue;
+      }
+
+      // Keyword Matching
       const matchesKeyword = rule.triggerKeyword && text.toLowerCase().includes(rule.triggerKeyword.toLowerCase());
 
       if (matchesKeyword) {
         let score = 0;
-        if (hasSpecificMedia) score += 10;
+        if (hasSpecificMedia) score += 10; // Prioritize specific media matches
         if (rule.triggerType === 'comment_exact' || rule.triggerType === 'dm_exact') score += 5;
 
         if (score > bestMatchScore) {
@@ -237,6 +246,7 @@ export class WebhooksService {
       }
     }
 
-    return matchedRule || defaultRule;
+    // Return the best matching keyword rule, OR the specific media default rule, OR the global default rule
+    return matchedRule || mediaDefaultRule || globalDefaultRule;
   }
 }
