@@ -30,21 +30,40 @@ export class DashboardComponent implements OnInit, OnDestroy {
     responsive: true,
     maintainAspectRatio: false,
     elements: {
-      line: {
-        tension: 0.4 // smooth curve
+      bar: {
+        borderRadius: 6,
       }
     },
     scales: {
       x: {
-        grid: { display: false }
+        grid: { display: false },
+        ticks: {
+          font: { family: "'Inter', sans-serif", size: 13 },
+          color: '#6b7280'
+        },
+        border: { display: false }
       },
       y: {
         beginAtZero: true,
-        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+        grid: { color: 'rgba(0, 0, 0, 0.04)', drawTicks: false },
+        ticks: {
+          font: { family: "'Inter', sans-serif", size: 12 },
+          color: '#9ca3af',
+          padding: 10
+        },
+        border: { display: false, dash: [4, 4] }
       }
     },
     plugins: {
-      legend: { display: false }
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(17, 24, 39, 0.9)',
+        titleFont: { family: "'Inter', sans-serif", size: 13 },
+        bodyFont: { family: "'Inter', sans-serif", size: 14, weight: 'bold' },
+        padding: 12,
+        cornerRadius: 8,
+        displayColors: false,
+      }
     }
   };
 
@@ -53,12 +72,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
     datasets: [
       { 
         data: [0, 0, 0, 0], 
-        label: 'Count',
-        backgroundColor: 'rgba(124, 58, 237, 0.8)', // Neon purple
-        borderColor: '#7c3aed',
-        borderWidth: 2,
-        hoverBackgroundColor: '#8b5cf6',
-        borderRadius: 4,
+        label: 'Total',
+        backgroundColor: 'rgba(124, 58, 237, 0.85)', // Vibrant primary purple
+        hoverBackgroundColor: 'rgba(139, 92, 246, 1)', // Lighter purple on hover
+        barPercentage: 0.5, // Thinner bars look more elegant
+        categoryPercentage: 0.8
       }
     ]
   };
