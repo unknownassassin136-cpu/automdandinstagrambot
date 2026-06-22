@@ -153,7 +153,7 @@ export class WebhooksService {
               // Check Subscription Limits
               const billingStatus = await this.subsService.getBillingStatus(internalAccount.userId as string);
               const ruleUsage = await this.subsService.getRuleUsage(finalRule.id as string);
-              const totalUsageForRule = ruleUsage.replyCount + ruleUsage.dmCount;
+              const totalUsageForRule = (ruleUsage.replyCount || 0) + (ruleUsage.dmCount || 0);
               
               if (billingStatus.limitPerAutomation !== -1 && totalUsageForRule >= billingStatus.limitPerAutomation) {
                 console.warn(`[Webhooks] Limit Reached for rule ${finalRule.id}. Skipping comment reply.`);
