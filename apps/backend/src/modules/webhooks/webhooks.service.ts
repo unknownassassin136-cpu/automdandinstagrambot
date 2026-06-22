@@ -162,11 +162,17 @@ export class WebhooksService {
               }
 
               // 2a. Send Public Comment Reply
-              if (finalRule.replyCommentText) {
+              let finalCommentReply = finalRule.replyCommentText;
+              if (finalRule.replyCommentVariants && finalRule.replyCommentVariants.length > 0) {
+                const randomIndex = Math.floor(Math.random() * finalRule.replyCommentVariants.length);
+                finalCommentReply = finalRule.replyCommentVariants[randomIndex];
+              }
+
+              if (finalCommentReply) {
                 try {
                   // Direct Instagram API for public comment replies
                   await axios.post(`https://graph.instagram.com/v22.0/${commentId}/replies`, {
-                    message: finalRule.replyCommentText
+                    message: finalCommentReply
                   }, {
                     headers: { Authorization: `Bearer ${accessToken}` }
                   });
@@ -180,12 +186,18 @@ export class WebhooksService {
               }
 
               // 2b. Send Private DM Reply to Comment
-              if (finalRule.dmTemplateText) {
+              let finalDmReply = finalRule.dmTemplateText;
+              if (finalRule.dmTemplateVariants && finalRule.dmTemplateVariants.length > 0) {
+                const randomIndex = Math.floor(Math.random() * finalRule.dmTemplateVariants.length);
+                finalDmReply = finalRule.dmTemplateVariants[randomIndex];
+              }
+
+              if (finalDmReply) {
                 try {
                   // Direct Instagram API for private replies to comments
                   await axios.post(`https://graph.instagram.com/v22.0/me/messages`, {
                     recipient: { comment_id: commentId },
-                    message: { text: finalRule.dmTemplateText }
+                    message: { text: finalDmReply }
                   }, {
                     headers: { Authorization: `Bearer ${accessToken}` }
                   });

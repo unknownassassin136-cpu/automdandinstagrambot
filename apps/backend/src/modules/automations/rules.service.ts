@@ -35,6 +35,8 @@ export class RulesService {
       triggerKeyword: data.triggerKeyword,
       replyCommentText: data.replyCommentText,
       dmTemplateText: data.dmTemplateText,
+      replyCommentVariants: data.replyCommentVariants,
+      dmTemplateVariants: data.dmTemplateVariants,
     });
   }
 

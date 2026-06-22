@@ -87,6 +87,8 @@ export const automationRules = pgTable('automation_rules', {
   isDefaultRule: boolean('is_default_rule').default(false),
   replyCommentText: text('reply_comment_text'),
   dmTemplateText: text('dm_template_text'),
+  replyCommentVariants: jsonb('reply_comment_variants').$type<string[]>(),
+  dmTemplateVariants: jsonb('dm_template_variants').$type<string[]>(),
   isActive: boolean('is_active').default(true),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),

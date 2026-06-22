@@ -11,6 +11,8 @@ export class RulesRepository {
     triggerKeyword: string;
     replyCommentText?: string;
     dmTemplateText?: string;
+    replyCommentVariants?: string[];
+    dmTemplateVariants?: string[];
   }) {
     const [rule] = await db.insert(automationRules).values({
       ...data,

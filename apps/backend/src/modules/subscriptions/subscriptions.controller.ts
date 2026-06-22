@@ -12,6 +12,7 @@ export class SubscriptionsController {
       const status = await this.subsService.getBillingStatus(userId);
       res.status(200).json(status);
     } catch (err: any) {
+      console.error('[SubscriptionsController] getBillingStatus Error:', err);
       res.status(400).json({ error: err.message });
     }
   };

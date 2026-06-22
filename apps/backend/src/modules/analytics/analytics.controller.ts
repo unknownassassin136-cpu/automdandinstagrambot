@@ -11,6 +11,7 @@ export class AnalyticsController {
       const stats = await this.analyticsService.getDashboardStats(userId);
       res.status(200).json(stats);
     } catch (err: any) {
+      console.error('[AnalyticsController] getDashboardStats Error:', err);
       res.status(400).json({ error: err.message });
     }
   };
