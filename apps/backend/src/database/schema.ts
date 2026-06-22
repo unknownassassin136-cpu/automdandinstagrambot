@@ -119,12 +119,12 @@ export const automationLogs = pgTable('automation_logs', {
 // 10. USAGE TRACKING
 export const usageTracking = pgTable('usage_tracking', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  ruleId: uuid('rule_id').references(() => automationRules.id, { onDelete: 'cascade' }),
   month: varchar('month', { length: 7 }).notNull(), // format YYYY-MM
   replyCount: integer('reply_count').default(0),
   dmCount: integer('dm_count').default(0),
 }, (table) => ({
-  unqUserMonth: uniqueIndex('unq_user_month').on(table.userId, table.month)
+  unqRuleMonth: uniqueIndex('unq_rule_month').on(table.ruleId, table.month)
 }));
 
 // 11. PROCESSED EVENTS

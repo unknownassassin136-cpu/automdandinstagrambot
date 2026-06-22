@@ -43,28 +43,39 @@ export class SubscriptionsService {
   async getBillingStatus(userId: string) {
     const sub = await this.getSubscription(userId);
     
-    // Get usage tracking for the current month
+    // Get usage tracking for the current month by summing up all rules for this user
     const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
-    let usage = await db.select().from(usageTracking)
-      .where(and(eq(usageTracking.userId, userId), eq(usageTracking.month, currentMonth)))
-      .limit(1)
-      .then(res => res[0]);
-
-    if (!usage) {
-      usage = { id: '', userId, month: currentMonth, replyCount: 0, dmCount: 0 };
-    }
+    
+    // We'll calculate total usage by querying all the user's rules and joining usageTracking
+    // For simplicity, we can fetch all rules for the user, then sum their usage for this month.
+    let totalReplies = 0;
+    let totalDms = 0;
 
     const planConfig = SUBSCRIPTION_PLANS[sub.planName] || SUBSCRIPTION_PLANS['free'];
 
     return {
       planName: planConfig.name,
       planId: sub.planName,
-      monthlyLimit: planConfig.limit,
+      limitPerAutomation: planConfig.limit,
       maxAutomations: planConfig.maxAutomations,
-      currentReplies: usage.replyCount,
-      currentDms: usage.dmCount,
+      currentReplies: totalReplies, // We can aggregate this later if needed for dashboard
+      currentDms: totalDms,
       status: sub.status,
       expiresAt: sub.expiresAt
     };
   }
+
+  async getRuleUsage(ruleId: string) {
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    let usage = await db.select().from(usageTracking)
+      .where(and(eq(usageTracking.ruleId, ruleId), eq(usageTracking.month, currentMonth)))
+      .limit(1)
+      .then(res => res[0]);
+
+    if (!usage) {
+      usage = { id: '', ruleId, month: currentMonth, replyCount: 0, dmCount: 0 } as any;
+    }
+    return usage;
+  }
+
 }

@@ -6,15 +6,20 @@ export class AnalyticsService {
   async getDashboardStats(userId: string) {
     const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
     
-    // 1. Get Usage Tracking
-    const [usage] = await db.select()
-      .from(usageTracking)
-      .where(
-        and(
-          eq(usageTracking.userId, userId),
-          eq(usageTracking.month, currentMonth)
-        )
-      );
+    // 1. Get Usage Tracking (Sum of all rules owned by user)
+    const [usageResult] = await db.select({
+      totalReplies: sql<number>`sum(${usageTracking.replyCount})`,
+      totalDms: sql<number>`sum(${usageTracking.dmCount})`
+    })
+    .from(usageTracking)
+    .innerJoin(automationRules, eq(usageTracking.ruleId, automationRules.id))
+    .innerJoin(connectedAccounts, eq(automationRules.accountId, connectedAccounts.id))
+    .where(
+      and(
+        eq(connectedAccounts.userId, userId),
+        eq(usageTracking.month, currentMonth)
+      )
+    );
 
     // 2. Get connected accounts count
     const [{ count: accountsCount }] = await db.select({ count: sql<number>`count(*)` })
@@ -28,8 +33,8 @@ export class AnalyticsService {
       .where(and(eq(connectedAccounts.userId, userId), eq(automationRules.isActive, true), sql`automation_rules.deleted_at IS NULL`));
 
     return {
-      repliesSent: usage?.replyCount || 0,
-      dmsSent: usage?.dmCount || 0,
+      repliesSent: Number(usageResult?.totalReplies) || 0,
+      dmsSent: Number(usageResult?.totalDms) || 0,
       totalAutomations: Number(rulesCount) || 0,
       connectedAccounts: Number(accountsCount) || 0,
     };
@@ -52,13 +57,13 @@ export class AnalyticsService {
     .limit(limit);
   }
 
-  async incrementUsage(userId: string, type: 'reply' | 'dm') {
+  async incrementUsage(ruleId: string, type: 'reply' | 'dm') {
     const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
     
     // Check if record exists
     const [existing] = await db.select()
       .from(usageTracking)
-      .where(and(eq(usageTracking.userId, userId), eq(usageTracking.month, currentMonth)));
+      .where(and(eq(usageTracking.ruleId, ruleId), eq(usageTracking.month, currentMonth)));
 
     if (existing) {
       await db.update(usageTracking)
@@ -69,7 +74,7 @@ export class AnalyticsService {
         .where(eq(usageTracking.id, existing.id));
     } else {
       await db.insert(usageTracking).values({
-        userId,
+        ruleId,
         month: currentMonth,
         replyCount: type === 'reply' ? 1 : 0,
         dmCount: type === 'dm' ? 1 : 0,
