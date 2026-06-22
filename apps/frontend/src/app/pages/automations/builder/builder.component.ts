@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators, FormArray, FormControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AutomationsService } from '../../../core/services/automations.service';
 import { AccountsService, ConnectedAccount } from '../../../core/services/accounts.service';
@@ -33,7 +33,41 @@ export class BuilderComponent implements OnInit {
     replyType: ['comment_and_dm', Validators.required],
     commentTemplate: ['', Validators.required],
     dmTemplate: [''],
+    commentVariants: this.fb.array([this.fb.control('', Validators.required)]),
+    dmVariants: this.fb.array([this.fb.control('')]),
   });
+
+  get commentVariants() {
+    return this.builderForm.get('commentVariants') as FormArray;
+  }
+
+  get dmVariants() {
+    return this.builderForm.get('dmVariants') as FormArray;
+  }
+
+  addCommentVariant() {
+    if (this.commentVariants.length < 4) {
+      this.commentVariants.push(this.fb.control('', Validators.required));
+    }
+  }
+
+  removeCommentVariant(index: number) {
+    if (this.commentVariants.length > 1) {
+      this.commentVariants.removeAt(index);
+    }
+  }
+
+  addDmVariant() {
+    if (this.dmVariants.length < 4) {
+      this.dmVariants.push(this.fb.control(''));
+    }
+  }
+
+  removeDmVariant(index: number) {
+    if (this.dmVariants.length > 1) {
+      this.dmVariants.removeAt(index);
+    }
+  }
 
   private route = inject(ActivatedRoute);
 
@@ -92,6 +126,21 @@ export class BuilderComponent implements OnInit {
             commentTemplate: ruleToEdit.replyCommentText || '',
             dmTemplate: ruleToEdit.dmTemplateText || ''
           });
+
+          // Handle Variants Array Patching
+          if ((ruleToEdit as any).replyCommentVariants && (ruleToEdit as any).replyCommentVariants.length > 0) {
+            this.commentVariants.clear();
+            (ruleToEdit as any).replyCommentVariants.forEach((variant: string) => {
+              this.commentVariants.push(this.fb.control(variant, Validators.required));
+            });
+          }
+
+          if ((ruleToEdit as any).dmTemplateVariants && (ruleToEdit as any).dmTemplateVariants.length > 0) {
+            this.dmVariants.clear();
+            (ruleToEdit as any).dmTemplateVariants.forEach((variant: string) => {
+              this.dmVariants.push(this.fb.control(variant));
+            });
+          }
         }
       });
     }
@@ -115,6 +164,8 @@ export class BuilderComponent implements OnInit {
         isDefaultRule: !!formValue.isDefaultRule,
         replyCommentText: formValue.commentTemplate || '',
         dmTemplateText: formValue.dmTemplate || '',
+        replyCommentVariants: !!formValue.isDefaultRule ? formValue.commentVariants : [],
+        dmTemplateVariants: !!formValue.isDefaultRule ? formValue.dmVariants : [],
         isActive: true
       };
 
