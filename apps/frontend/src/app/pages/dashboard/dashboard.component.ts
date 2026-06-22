@@ -1,12 +1,14 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { StatsCardComponent } from '../../components/stats-card/stats-card.component';
 import { CommonModule, DatePipe } from '@angular/common';
 import { AnalyticsService } from '../../core/services/analytics.service';
+import { BaseChartDirective } from 'ng2-charts';
+import { ChartConfiguration, ChartData, ChartEvent, ChartType } from 'chart.js';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, StatsCardComponent, DatePipe],
+  imports: [CommonModule, StatsCardComponent, DatePipe, BaseChartDirective],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit, OnDestroy {
@@ -21,6 +23,47 @@ export class DashboardComponent implements OnInit, OnDestroy {
   
   recentActivity: any[] = [];
   private pollingInterval: any;
+
+  @ViewChild(BaseChartDirective) chart: BaseChartDirective | undefined;
+
+  public chartOptions: ChartConfiguration['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    elements: {
+      line: {
+        tension: 0.4 // smooth curve
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false }
+      },
+      y: {
+        beginAtZero: true,
+        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+      }
+    },
+    plugins: {
+      legend: { display: false }
+    }
+  };
+
+  public chartData: ChartData<'bar'> = {
+    labels: ['Replies', 'DMs', 'Automations', 'Accounts'],
+    datasets: [
+      { 
+        data: [0, 0, 0, 0], 
+        label: 'Count',
+        backgroundColor: 'rgba(124, 58, 237, 0.8)', // Neon purple
+        borderColor: '#7c3aed',
+        borderWidth: 2,
+        hoverBackgroundColor: '#8b5cf6',
+        borderRadius: 4,
+      }
+    ]
+  };
+
+  public chartType: ChartType = 'bar';
 
   constructor(
     private analyticsService: AnalyticsService,
@@ -52,6 +95,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
           dmsSent: data?.dmsSent ?? 0,
           connectedAccounts: data?.connectedAccounts ?? 0
         };
+
+        // Update chart data
+        this.chartData.datasets[0].data = [
+          this.metrics.repliesSent,
+          this.metrics.dmsSent,
+          this.metrics.totalAutomations,
+          this.metrics.connectedAccounts
+        ];
+        this.chart?.update();
+
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -63,6 +116,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
           dmsSent: 0,
           connectedAccounts: 0
         };
+        this.chartData.datasets[0].data = [0, 0, 0, 0];
+        this.chart?.update();
         this.cdr.detectChanges();
       }
     });
