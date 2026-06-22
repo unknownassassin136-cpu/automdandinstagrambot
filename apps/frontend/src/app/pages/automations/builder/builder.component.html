@@ -73,17 +73,68 @@
           </select>
         </div>
 
-        <div *ngIf="builderForm.get('replyType')?.value !== 'dm_only'">
-          <label class="block text-sm font-medium text-[var(--color-text)]">Comment Reply Template</label>
-          <textarea formControlName="commentTemplate" rows="2" class="input-field mt-1"
-            placeholder="Hey @{{'{{'}}username{{'}}'}}! Sent you a DM with the link!"></textarea>
-        </div>
+        <!-- Keyword Rule Template (Single) -->
+        <ng-container *ngIf="!builderForm.value.isDefaultRule">
+          <div *ngIf="builderForm.value.replyType !== 'dm_only'">
+            <label class="block text-sm font-medium text-[var(--color-text)]">Comment Reply Template</label>
+            <textarea formControlName="commentTemplate" rows="2" class="input-field mt-1"
+              placeholder="Hey @{{'{{'}}username{{'}}'}}! Sent you a DM with the link!"></textarea>
+          </div>
 
-        <div *ngIf="builderForm.get('replyType')?.value !== 'comment_only'">
-          <label class="block text-sm font-medium text-[var(--color-text)]">Direct Message Template</label>
-          <textarea formControlName="dmTemplate" rows="4" class="input-field mt-1"
-            placeholder="Hey! Thanks for your interest. Here is the link you requested: https://..."></textarea>
-        </div>
+          <div *ngIf="builderForm.value.replyType !== 'comment_only'" class="mt-4">
+            <label class="block text-sm font-medium text-[var(--color-text)]">Direct Message Template</label>
+            <textarea formControlName="dmTemplate" rows="4" class="input-field mt-1"
+              placeholder="Hey! Thanks for your interest. Here is the link you requested: https://..."></textarea>
+          </div>
+        </ng-container>
+
+        <!-- Catch-all Rule Templates (Variations) -->
+        <ng-container *ngIf="builderForm.value.isDefaultRule">
+          
+          <!-- Comment Variations -->
+          <div *ngIf="builderForm.value.replyType !== 'dm_only'" formArrayName="commentVariants">
+            <label class="block text-sm font-medium text-[var(--color-text)] mb-2">
+              Random Comment Reply Variations (Max 4)
+              <p class="text-xs text-gray-500 font-normal">The bot will randomly pick one of these to avoid spam filters.</p>
+            </label>
+            
+            <div *ngFor="let variant of commentVariants.controls; let i=index" class="relative mb-2 flex items-start gap-2">
+              <textarea [formControlName]="i" rows="2" class="input-field w-full"
+                placeholder="Variation {{ i + 1 }}..."></textarea>
+              <button *ngIf="commentVariants.length > 1" type="button" (click)="removeCommentVariant(i)" 
+                class="mt-2 text-red-500 hover:text-red-700 focus:outline-none">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              </button>
+            </div>
+            
+            <button *ngIf="commentVariants.length < 4" type="button" (click)="addCommentVariant()" 
+              class="text-sm text-[var(--color-primary)] font-medium hover:underline flex items-center gap-1">
+              <span>+ Add Variation</span>
+            </button>
+          </div>
+
+          <!-- DM Variations -->
+          <div *ngIf="builderForm.value.replyType !== 'comment_only'" formArrayName="dmVariants" class="mt-6">
+            <label class="block text-sm font-medium text-[var(--color-text)] mb-2">
+              Random Direct Message Variations (Max 4)
+            </label>
+            
+            <div *ngFor="let variant of dmVariants.controls; let i=index" class="relative mb-2 flex items-start gap-2">
+              <textarea [formControlName]="i" rows="3" class="input-field w-full"
+                placeholder="DM Variation {{ i + 1 }}..."></textarea>
+              <button *ngIf="dmVariants.length > 1" type="button" (click)="removeDmVariant(i)" 
+                class="mt-2 text-red-500 hover:text-red-700 focus:outline-none">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              </button>
+            </div>
+            
+            <button *ngIf="dmVariants.length < 4" type="button" (click)="addDmVariant()" 
+              class="text-sm text-[var(--color-primary)] font-medium hover:underline flex items-center gap-1">
+              <span>+ Add Variation</span>
+            </button>
+          </div>
+
+        </ng-container>
       </div>
     </div>
   </div>
