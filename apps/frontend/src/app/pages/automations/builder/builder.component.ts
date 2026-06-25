@@ -86,16 +86,47 @@ export class BuilderComponent implements OnInit {
       error: (err) => console.error('Failed to fetch accounts', err)
     });
 
-    // Update validators based on isDefaultRule
-    this.builderForm.get('isDefaultRule')?.valueChanges.subscribe(isDefault => {
-      const keywordsControl = this.builderForm.get('keywords');
-      if (isDefault) {
-        keywordsControl?.clearValidators();
-      } else {
-        keywordsControl?.setValidators([Validators.required]);
-      }
-      keywordsControl?.updateValueAndValidity();
-    });
+    // Update validators based on form state
+    this.builderForm.get('isDefaultRule')?.valueChanges.subscribe(() => this.updateValidators());
+    this.builderForm.get('replyType')?.valueChanges.subscribe(() => this.updateValidators());
+    // Initial validator setup
+    this.updateValidators();
+  }
+
+  updateValidators() {
+    const isDefault = this.builderForm.get('isDefaultRule')?.value;
+    const replyType = this.builderForm.get('replyType')?.value;
+    
+    const keywordsControl = this.builderForm.get('keywords');
+    const commentTemplateControl = this.builderForm.get('commentTemplate');
+    const dmTemplateControl = this.builderForm.get('dmTemplate');
+
+    // Keywords validation
+    if (isDefault) {
+      keywordsControl?.clearValidators();
+    } else {
+      keywordsControl?.setValidators([Validators.required]);
+    }
+    keywordsControl?.updateValueAndValidity();
+
+    // Comment validation
+    if (isDefault || replyType === 'dm_only') {
+      commentTemplateControl?.clearValidators();
+    } else {
+      commentTemplateControl?.setValidators([Validators.required]);
+    }
+    commentTemplateControl?.updateValueAndValidity();
+
+    // DM validation
+    if (isDefault || replyType === 'comment_only') {
+      dmTemplateControl?.clearValidators();
+    } else {
+      dmTemplateControl?.setValidators([Validators.required]); // Optional: if you want DM to be required when selected
+    }
+    dmTemplateControl?.updateValueAndValidity();
+    
+    // Note: FormArray elements are already validated when added, but we don't enforce global required
+    // on the arrays themselves unless needed. Currently commentVariants has a required validator on its initial control.
   }
 
   fetchMedia(accountId: string) {
