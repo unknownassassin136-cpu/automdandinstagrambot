@@ -6,14 +6,14 @@
 <div class="flex flex-col md:flex-row gap-8">
   <!-- Sidebar Navigation -->
   <div class="w-full md:w-64 flex-shrink-0">
-    <nav class="space-y-1">
-      <button (click)="switchTab('profile')" [ngClass]="activeTab === 'profile' ? 'bg-indigo-50 text-[var(--color-primary)] font-semibold' : 'text-[var(--color-text-secondary)] hover:bg-gray-50'" class="w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors">
+    <nav class="space-y-4">
+      <button (click)="switchTab('profile')" [ngClass]="activeTab === 'profile' ? 'shadow-neu-pressed bg-cards text-primary font-bold' : 'text-text/70 hover:shadow-neu-flat hover:text-primary'" class="w-full text-left px-5 py-3 rounded-2xl text-[15px] transition-all duration-300">
         Profile
       </button>
-      <button (click)="switchTab('billing')" [ngClass]="activeTab === 'billing' ? 'bg-indigo-50 text-[var(--color-primary)] font-semibold' : 'text-[var(--color-text-secondary)] hover:bg-gray-50'" class="w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors">
+      <button (click)="switchTab('billing')" [ngClass]="activeTab === 'billing' ? 'shadow-neu-pressed bg-cards text-primary font-bold' : 'text-text/70 hover:shadow-neu-flat hover:text-primary'" class="w-full text-left px-5 py-3 rounded-2xl text-[15px] transition-all duration-300">
         Billing & Plan
       </button>
-      <button (click)="switchTab('security')" [ngClass]="activeTab === 'security' ? 'bg-indigo-50 text-[var(--color-primary)] font-semibold' : 'text-[var(--color-text-secondary)] hover:bg-gray-50'" class="w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors">
+      <button (click)="switchTab('security')" [ngClass]="activeTab === 'security' ? 'shadow-neu-pressed bg-cards text-primary font-bold' : 'text-text/70 hover:shadow-neu-flat hover:text-primary'" class="w-full text-left px-5 py-3 rounded-2xl text-[15px] transition-all duration-300">
         Security & Sessions
       </button>
     </nav>
@@ -76,16 +76,16 @@
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             @for (plan of billingPlans; track plan.name) {
-              <div [ngClass]="billingStatus?.planId === plan.id ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)] bg-indigo-50/30' : 'border-[var(--color-borders)] bg-white'" class="border rounded-xl p-4 relative transition-colors">
+              <div [ngClass]="billingStatus?.planId === plan.id ? 'shadow-neu-pressed bg-cards' : 'shadow-neu-flat bg-cards'" class="rounded-3xl p-6 relative transition-all duration-300">
                 @if (billingStatus?.planId === plan.id) {
-                  <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--color-primary)] text-white text-xs font-bold px-2 py-0.5 rounded-full">Current</span>
+                  <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary shadow-neu-flat text-white text-xs font-bold px-4 py-1.5 rounded-full">Current</span>
                 }
-                <h4 class="font-semibold text-[var(--color-text)]">{{ plan.name }}</h4>
-                <div class="mt-2 text-2xl font-bold text-[var(--color-text)]">{{ plan.price }}</div>
-                <ul class="mt-4 space-y-2 text-sm text-[var(--color-text-secondary)]">
+                <h4 class="font-bold text-lg text-text">{{ plan.name }}</h4>
+                <div class="mt-4 text-3xl font-extrabold text-primary">{{ plan.price }}</div>
+                <ul class="mt-6 space-y-3 text-[15px] text-text/80">
                   @for (feature of plan.features; track feature) {
-                    <li class="flex items-start gap-2">
-                      <svg class="w-4 h-4 text-[var(--color-success)] mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    <li class="flex items-start gap-3">
+                      <svg class="w-5 h-5 text-success mt-0.5 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
                       {{ feature }}
                     </li>
                   }
@@ -93,8 +93,8 @@
                 <button 
                   (click)="upgradePlan(plan.id)"
                   [disabled]="billingStatus?.planId === plan.id"
-                  [ngClass]="billingStatus?.planId === plan.id ? 'bg-indigo-100 text-indigo-700 font-bold cursor-default' : 'btn-secondary hover:border-indigo-500 hover:text-indigo-600'" 
-                  class="w-full mt-6 py-2 text-sm rounded-lg border font-medium transition-colors">
+                  [ngClass]="billingStatus?.planId === plan.id ? 'shadow-neu-pressed bg-cards text-primary font-bold cursor-default opacity-80' : 'btn-secondary'" 
+                  class="w-full mt-8 py-3 text-[15px] rounded-xl font-bold transition-all duration-300">
                   {{ billingStatus?.planId === plan.id ? 'Current Plan' : 'Select Plan' }}
                 </button>
               </div>
@@ -127,27 +127,27 @@
             <h3 class="text-lg font-semibold text-[var(--color-text)]">Active Sessions</h3>
             <button class="text-sm text-[var(--color-danger)] font-medium hover:underline">Log out all other sessions</button>
           </div>
-          <div class="divide-y divide-[var(--color-borders)] border border-[var(--color-borders)] rounded-lg overflow-hidden">
+          <div class="space-y-3">
             @for (session of sessions; track session.device) {
-              <div class="p-4 flex items-center justify-between bg-white hover:bg-gray-50 transition-colors">
-                <div class="flex items-start gap-3">
+              <div class="p-5 flex items-center justify-between bg-cards shadow-neu-flat hover:shadow-neu-pressed transition-all duration-300 rounded-2xl">
+                <div class="flex items-start gap-4">
                   <div class="mt-1">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 text-text/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <div>
-                    <p class="text-sm font-medium text-[var(--color-text)] flex items-center gap-2">
+                    <p class="text-[15px] font-bold text-text flex items-center gap-3">
                       {{ session.device }}
                       @if (session.current) {
-                        <span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Current</span>
+                        <span class="bg-primary text-white text-[10px] shadow-neu-flat font-bold px-3 py-1 rounded-full uppercase">Current</span>
                       }
                     </p>
-                    <p class="text-xs text-[var(--color-text-secondary)] mt-0.5">{{ session.location }} • {{ session.time }}</p>
+                    <p class="text-sm text-text/60 mt-1">{{ session.location }} • {{ session.time }}</p>
                   </div>
                 </div>
                 @if (!session.current) {
-                  <button class="btn-secondary text-xs px-3 py-1.5">Revoke</button>
+                  <button class="btn-secondary text-xs px-4 py-2 hover:text-danger hover:shadow-[inset_-3px_-3px_6px_#ffffff,inset_3px_3px_6px_#fca5a5]">Revoke</button>
                 }
               </div>
             }
