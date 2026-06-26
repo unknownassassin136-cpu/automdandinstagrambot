@@ -3,6 +3,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SubscriptionsService } from '../../core/services/subscriptions.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
+import { LayoutService } from '../../services/layout.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -13,6 +14,7 @@ import { AnalyticsService } from '../../core/services/analytics.service';
 export class SidebarComponent implements OnInit {
   private subsService = inject(SubscriptionsService);
   private analyticsService = inject(AnalyticsService);
+  layoutService = inject(LayoutService);
   private cdr = inject(ChangeDetectorRef);
 
   menuItems = [

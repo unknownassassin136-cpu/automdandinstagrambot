@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../services/theme.service';
+import { LayoutService } from '../../services/layout.service';
 
 @Component({
   selector: 'app-navbar',
@@ -16,10 +17,12 @@ export class NavbarComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   themeService = inject(ThemeService);
+  layoutService = inject(LayoutService);
 
   toggleMenu() {
     this.isMenuOpen = !this.isMenuOpen;
   }
+
 
   logout() {
     this.authService.logout();

@@ -1,5 +1,13 @@
-<aside class="w-64 bg-cards shadow-[10px_0_20px_rgba(163,177,198,0.2)] h-screen sticky top-0 flex flex-col hidden md:flex z-20">
-  <!-- Logo Area -->
+<!-- Mobile Backdrop overlay -->
+<div *ngIf="layoutService.isMobileSidebarOpen()" 
+     (click)="layoutService.closeMobileSidebar()"
+     class="fixed inset-0 bg-black/50 z-30 md:hidden backdrop-blur-sm transition-opacity">
+</div>
+
+<!-- Sidebar -->
+<aside [class.translate-x-0]="layoutService.isMobileSidebarOpen()"
+       [class.-translate-x-full]="!layoutService.isMobileSidebarOpen()"
+       class="w-64 bg-cards shadow-[10px_0_20px_rgba(0,0,0,0.1)] h-screen fixed md:sticky top-0 left-0 flex flex-col z-40 transform transition-transform duration-300 md:translate-x-0">
   <div class="h-20 flex items-center px-8 mb-4">
     <div class="flex items-center gap-4">
       <div class="w-10 h-10 rounded-xl bg-cards shadow-neu-flat flex items-center justify-center text-primary">
@@ -16,6 +24,7 @@
     @for (item of menuItems; track item.label) {
       <a
         [routerLink]="item.route"
+        (click)="layoutService.closeMobileSidebar()"
         routerLinkActive="shadow-neu-pressed text-primary font-bold"
         [routerLinkActiveOptions]="{exact: item.route === '/'}"
         class="flex items-center gap-4 px-4 py-3 rounded-2xl text-text/70 transition-all duration-300 hover:shadow-neu-flat hover:text-primary group"
