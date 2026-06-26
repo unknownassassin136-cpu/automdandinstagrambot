@@ -16,31 +16,31 @@
 <!-- Automations Table -->
 <div class="card overflow-hidden">
   <div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-[var(--color-borders)]">
-      <thead class="bg-gray-50">
+    <table class="min-w-full border-collapse">
+      <thead>
         <tr>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
+          <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">
             Name & Trigger
           </th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
+          <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">
             Status
           </th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
+          <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">
             Replied
           </th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
+          <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">
             Last Active
           </th>
-          <th scope="col" class="relative px-6 py-3">
+          <th scope="col" class="relative px-6 py-4">
             <span class="sr-only">Edit</span>
           </th>
         </tr>
       </thead>
-      <tbody class="bg-white divide-y divide-[var(--color-borders)]">
-        <tr *ngFor="let item of automations" class="hover:bg-gray-50 transition-colors">
-            <td class="px-6 py-4 whitespace-nowrap">
+      <tbody class="bg-transparent">
+        <tr *ngFor="let item of automations" class="hover:shadow-neu-pressed transition-all duration-300 rounded-xl">
+            <td class="px-6 py-5 whitespace-nowrap border-b border-black/5 first:rounded-l-xl last:rounded-r-xl">
               <div class="flex items-center">
-                <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-lg bg-indigo-50 text-[var(--color-primary)]">
+                <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-xl bg-cards shadow-neu-flat text-[var(--color-primary)]">
                   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
@@ -51,19 +51,19 @@
                 </div>
               </div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span [ngClass]="item.isActive ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'" 
-                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full capitalize">
+            <td class="px-6 py-5 whitespace-nowrap border-b border-black/5">
+              <span [ngClass]="item.isActive ? 'bg-green-100/50 text-green-700' : 'bg-yellow-100/50 text-yellow-700'" 
+                    class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full capitalize shadow-neu-flat">
                 {{ item.isActive ? 'Active' : 'Paused' }}
               </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
+            <td class="px-6 py-5 whitespace-nowrap text-sm text-[var(--color-text-secondary)] border-b border-black/5">
               -
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
+            <td class="px-6 py-5 whitespace-nowrap text-sm text-[var(--color-text-secondary)] border-b border-black/5">
               Just now
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <td class="px-6 py-5 whitespace-nowrap text-right text-sm font-medium border-b border-black/5">
               <a [routerLink]="['/automations/edit', item.id]" class="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] mr-4">Edit</a>
               <button (click)="item.id && deleteAutomation(item.id)" class="text-red-600 hover:text-red-900 focus:outline-none">Delete</button>
             </td>
