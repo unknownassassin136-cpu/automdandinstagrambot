@@ -1,12 +1,13 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './navbar.component.html',
 })
 export class NavbarComponent {
@@ -14,6 +15,7 @@ export class NavbarComponent {
 
   private authService = inject(AuthService);
   private router = inject(Router);
+  themeService = inject(ThemeService);
 
   toggleMenu() {
     this.isMenuOpen = !this.isMenuOpen;

@@ -3,28 +3,29 @@ module.exports = {
   content: [
     "./src/**/*.{html,ts}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#7c3aed',
-          hover: '#8b5cf6',
+          DEFAULT: 'var(--color-primary)',
+          hover: 'var(--color-primary-hover)',
         },
-        background: '#e0e5ec',
-        cards: '#e0e5ec',
-        borders: '#d1d9e6',
+        background: 'var(--color-background)',
+        cards: 'var(--color-cards)',
+        borders: 'var(--color-borders)',
         text: {
-          DEFAULT: '#334155',
-          secondary: '#64748B',
+          DEFAULT: 'var(--color-text)',
+          secondary: 'var(--color-text-secondary)',
         },
-        success: '#22C55E',
-        warning: '#F59E0B',
-        danger: '#EF4444',
+        success: 'var(--color-success)',
+        warning: 'var(--color-warning)',
+        danger: 'var(--color-danger)',
       },
       boxShadow: {
-        'neu-flat': '-6px -6px 12px #ffffff, 6px 6px 12px #b8c5d6',
-        'neu-pressed': 'inset -4px -4px 8px #ffffff, inset 4px 4px 8px #b8c5d6',
-        'neu-sm': '-3px -3px 6px #ffffff, 3px 3px 6px #b8c5d6',
+        'neu-flat': 'var(--shadow-neu-flat)',
+        'neu-pressed': 'var(--shadow-neu-pressed)',
+        'neu-sm': 'var(--shadow-neu-sm)',
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],

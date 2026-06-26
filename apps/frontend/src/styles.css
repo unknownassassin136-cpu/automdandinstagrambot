@@ -3,8 +3,37 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-primary: #7c3aed;
+    --color-primary-hover: #8b5cf6;
+    --color-background: #e0e5ec;
+    --color-cards: #e0e5ec;
+    --color-borders: #d1d9e6;
+    --color-text: #334155;
+    --color-text-secondary: #64748B;
+    --color-success: #22C55E;
+    --color-warning: #F59E0B;
+    --color-danger: #EF4444;
+    --shadow-neu-flat: -6px -6px 12px #ffffff, 6px 6px 12px #b8c5d6;
+    --shadow-neu-pressed: inset -4px -4px 8px #ffffff, inset 4px 4px 8px #b8c5d6;
+    --shadow-neu-sm: -3px -3px 6px #ffffff, 3px 3px 6px #b8c5d6;
+  }
+
+  .dark {
+    --color-primary: #8b5cf6;
+    --color-primary-hover: #a78bfa;
+    --color-background: #1e1e24;
+    --color-cards: #1e1e24;
+    --color-borders: #2d3748;
+    --color-text: #e2e8f0;
+    --color-text-secondary: #94a3b8;
+    --shadow-neu-flat: -6px -6px 12px #282830, 6px 6px 12px #141418;
+    --shadow-neu-pressed: inset -4px -4px 8px #282830, inset 4px 4px 8px #141418;
+    --shadow-neu-sm: -3px -3px 6px #282830, 3px 3px 6px #141418;
+  }
+
   body {
-    @apply bg-background text-text font-sans antialiased;
+    @apply bg-background text-text font-sans antialiased transition-colors duration-300;
   }
 }
 
