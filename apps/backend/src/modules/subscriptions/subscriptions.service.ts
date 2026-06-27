@@ -62,9 +62,25 @@ export class SubscriptionsService {
       currentReplies: totalReplies, // We can aggregate this later if needed for dashboard
       currentDms: totalDms,
       status: sub.status,
-      aiAccess: planConfig.aiAccess,
+      hasAiAddon: sub.hasAiAddon,
       expiresAt: sub.expiresAt
     };
+  }
+
+  async handleAiAddonUpdate(userId: string, enabled: boolean) {
+    const existing = await db.select().from(subscriptions).where(eq(subscriptions.userId, userId));
+    if (existing.length === 0) {
+      // Create free tier with/without AI
+      await db.insert(subscriptions).values({
+        userId,
+        planName: 'free',
+        hasAiAddon: enabled
+      });
+    } else {
+      await db.update(subscriptions)
+        .set({ hasAiAddon: enabled })
+        .where(eq(subscriptions.userId, userId));
+    }
   }
 
   async getRuleUsage(ruleId: string) {

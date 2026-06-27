@@ -18,4 +18,8 @@ export class SubscriptionsService {
   mockUpgrade(planName: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/mock-upgrade`, { planName });
   }
+
+  mockAiUpgrade(enabled: boolean): Observable<any> {
+    return this.http.post(`${this.apiUrl}/mock-ai-upgrade`, { enabled });
+  }
 }

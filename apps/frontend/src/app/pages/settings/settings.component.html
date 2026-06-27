@@ -74,31 +74,51 @@
             <p class="text-sm text-[var(--color-text-secondary)] mb-6">Loading billing information...</p>
           }
           
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            @for (plan of billingPlans; track plan.name) {
-              <div [ngClass]="billingStatus?.planId === plan.id ? 'shadow-neu-pressed bg-cards' : 'shadow-neu-flat bg-cards'" class="rounded-3xl p-6 relative transition-all duration-300">
-                @if (billingStatus?.planId === plan.id) {
-                  <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary shadow-neu-flat text-white text-xs font-bold px-4 py-1.5 rounded-full">Current</span>
-                }
-                <h4 class="font-bold text-lg text-text">{{ plan.name }}</h4>
-                <div class="mt-4 text-3xl font-extrabold text-primary">{{ plan.price }}</div>
-                <ul class="mt-6 space-y-3 text-[15px] text-text/80">
-                  @for (feature of plan.features; track feature) {
-                    <li class="flex items-start gap-3">
-                      <svg class="w-5 h-5 text-success mt-0.5 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
-                      {{ feature }}
-                    </li>
-                  }
-                </ul>
-                <button 
-                  (click)="upgradePlan(plan.id)"
-                  [disabled]="billingStatus?.planId === plan.id"
-                  [ngClass]="billingStatus?.planId === plan.id ? 'shadow-neu-pressed bg-cards text-primary font-bold cursor-default opacity-80' : 'btn-secondary'" 
-                  class="w-full mt-8 py-3 text-[15px] rounded-xl font-bold transition-all duration-300">
-                  {{ billingStatus?.planId === plan.id ? 'Current Plan' : 'Select Plan' }}
-                </button>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div *ngFor="let plan of billingPlans" class="card p-6 border-2" [ngClass]="billingStatus?.planId === plan.id ? 'border-primary shadow-neu-pressed' : 'border-transparent'">
+              <div *ngIf="billingStatus?.planId === plan.id" class="flex justify-center mb-4 -mt-10">
+                <span class="bg-primary text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">Current</span>
               </div>
-            }
+              <h3 class="text-xl font-bold text-[var(--color-text)]">{{ plan.name }}</h3>
+              <p class="text-3xl font-bold text-primary mt-4">{{ plan.price }}</p>
+              <ul class="mt-6 space-y-4">
+                <li *ngFor="let feature of plan.features" class="flex items-center text-sm text-[var(--color-text-secondary)]">
+                  <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  {{ feature }}
+                </li>
+              </ul>
+              <button class="w-full mt-8 btn-secondary" *ngIf="billingStatus?.planId !== plan.id" (click)="upgradePlan(plan.id)">
+                Select Plan
+              </button>
+              <button class="w-full mt-8 btn-secondary opacity-50 cursor-not-allowed" *ngIf="billingStatus?.planId === plan.id" disabled>
+                Current Plan
+              </button>
+            </div>
+          </div>
+
+          <!-- AI Add-on Section -->
+          <div class="border-t border-[var(--color-borders)] pt-12">
+            <h3 class="text-2xl font-bold text-[var(--color-text)] mb-2">AI Capabilities</h3>
+            <p class="text-[var(--color-text-secondary)] mb-8 text-sm">Supercharge your automations with intelligent AI responses that understand your business context.</p>
+
+            <div class="card p-6 border-2 max-w-md" [ngClass]="billingStatus?.hasAiAddon ? 'border-purple-500 shadow-neu-pressed bg-purple-900/10' : 'border-transparent'">
+              <div *ngIf="billingStatus?.hasAiAddon" class="flex justify-start mb-4 -mt-10">
+                <span class="bg-purple-500 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">Current Add-on</span>
+              </div>
+              <h3 class="text-xl font-bold text-[var(--color-text)]">{{ aiPlan.name }}</h3>
+              <p class="text-3xl font-bold text-purple-500 mt-4">{{ aiPlan.price }}</p>
+              <ul class="mt-6 space-y-4">
+                <li *ngFor="let feature of aiPlan.features" class="flex items-center text-sm text-[var(--color-text-secondary)]">
+                  <svg class="w-5 h-5 text-purple-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  {{ feature }}
+                </li>
+              </ul>
+              <button class="w-full mt-8 text-white py-3 rounded-xl transition-all" 
+                      [ngClass]="billingStatus?.hasAiAddon ? 'bg-red-500/20 hover:bg-red-500/40 text-red-500' : 'bg-purple-600 hover:bg-purple-700'"
+                      (click)="toggleAiPlan()">
+                {{ billingStatus?.hasAiAddon ? 'Remove AI Add-on' : 'Enable AI Features' }}
+              </button>
+            </div>
           </div>
         </div>
       </div>

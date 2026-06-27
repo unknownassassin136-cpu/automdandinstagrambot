@@ -41,6 +41,7 @@ export const subscriptions = pgTable('subscriptions', {
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
   planName: varchar('plan_name', { length: 50 }).notNull().default('free'),
   status: varchar('status', { length: 20 }).default('active'),
+  hasAiAddon: boolean('has_ai_addon').default(false),
   monthlyLimit: integer('monthly_limit').default(100),
   maxAccounts: integer('max_accounts').default(1),
   expiresAt: timestamp('expires_at', { withTimezone: true }),

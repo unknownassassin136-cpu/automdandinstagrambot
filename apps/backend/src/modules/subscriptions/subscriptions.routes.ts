@@ -9,3 +9,4 @@ subscriptionsRouter.use(authMiddleware);
 
 subscriptionsRouter.get('/status', controller.getBillingStatus);
 subscriptionsRouter.post('/mock-upgrade', controller.mockUpgrade);
+subscriptionsRouter.post('/mock-ai-upgrade', controller.mockAiUpgrade);

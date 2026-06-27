@@ -22,9 +22,23 @@ export class SubscriptionsController {
       const userId = req.user?.userId;
       const { planName } = req.body;
       if (!userId) throw new Error('Unauthorized');
-      if (!['free', 'plus', 'pro', 'ai_pro'].includes(planName)) throw new Error('Invalid plan name');
+      if (!['free', 'plus', 'pro'].includes(planName)) throw new Error('Invalid plan name');
 
       await this.subsService.handleSubscriptionUpdate(userId, planName);
+      const status = await this.subsService.getBillingStatus(userId);
+      res.status(200).json(status);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  };
+
+  mockAiUpgrade = async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      const { enabled } = req.body;
+      if (!userId) throw new Error('Unauthorized');
+
+      await this.subsService.handleAiAddonUpdate(userId, enabled === true);
       const status = await this.subsService.getBillingStatus(userId);
       res.status(200).json(status);
     } catch (err: any) {

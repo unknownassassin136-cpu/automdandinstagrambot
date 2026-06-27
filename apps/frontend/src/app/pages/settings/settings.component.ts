@@ -27,9 +27,12 @@ export class SettingsComponent implements OnInit {
   billingPlans = [
     { id: 'free', name: 'Free', price: '$0', features: ['1 Instagram Account', '3 Automation Rules', '10 Replies per automation'] },
     { id: 'plus', name: 'Plus', price: '$29/mo', features: ['1 Instagram Account', '5 Automation Rules', '20 Replies per automation'] },
-    { id: 'pro', name: 'Pro', price: '$99/mo', features: ['Unlimited Accounts', 'Unlimited Automations', 'Unlimited Replies'] },
-    { id: 'ai_pro', name: 'AI Pro', price: '$149/mo', features: ['Unlimited Automations', 'Unlimited Replies', 'AI Auto-Replies Enabled'] }
+    { id: 'pro', name: 'Pro', price: '$99/mo', features: ['Unlimited Accounts', 'Unlimited Automations', 'Unlimited Replies'] }
   ];
+
+  aiPlan = {
+    id: 'ai_addon', name: 'AI Add-on', price: '$50/mo', features: ['Intelligent Contextual Replies', 'Automatic Spam Filtering', 'Handles Custom Business FAQs']
+  };
 
   sessions = [
     { device: 'MacBook Pro (Chrome)', location: 'San Francisco, CA', time: 'Active now', current: true },
@@ -60,6 +63,24 @@ export class SettingsComponent implements OnInit {
         error: (err: any) => {
           console.error('Failed to upgrade', err);
           alert('Failed to upgrade plan');
+        }
+      });
+    }
+  }
+
+  toggleAiPlan() {
+    const isCurrentlyEnabled = this.billingStatus?.hasAiAddon;
+    const action = isCurrentlyEnabled ? 'disable' : 'enable';
+    
+    if (confirm(`Mock Action: Are you sure you want to ${action} the AI Add-on?`)) {
+      this.subsService.mockAiUpgrade(!isCurrentlyEnabled).subscribe({
+        next: (status) => {
+          this.billingStatus = status;
+          alert(`Successfully ${!isCurrentlyEnabled ? 'enabled' : 'disabled'} AI features`);
+        },
+        error: (err: any) => {
+          console.error('Failed to toggle AI plan', err);
+          alert('Failed to update AI plan');
         }
       });
     }
