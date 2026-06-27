@@ -9,8 +9,11 @@
   @if (connectedAccounts.length > 0) {
     <div class="space-y-6">
       @for (account of connectedAccounts; track account.id) {
-        <div class="p-6 bg-indigo-50/50 rounded-xl border border-indigo-100">
-          <div class="flex items-center justify-between mb-4">
+        <div class="p-6 bg-[var(--color-surface)] rounded-xl border border-[var(--color-borders)] relative overflow-hidden group">
+          <!-- Subtle gradient accent -->
+          <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+          
+          <div class="flex items-center justify-between mb-4 relative z-10">
             <div class="flex items-center gap-4">
               <div class="h-12 w-12 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/30">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -25,18 +28,18 @@
             
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" class="sr-only peer" [(ngModel)]="account.aiDmEnabled" (change)="toggleAiDm(account)">
-              <div class="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-indigo-600"></div>
+              <div class="w-14 h-7 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-indigo-600"></div>
             </label>
           </div>
 
           @if (account.aiDmEnabled) {
-            <div class="mt-6 space-y-3">
-              <label class="block text-sm font-semibold text-indigo-900">Business Context (Rules & Knowledge base)</label>
-              <p class="text-xs text-indigo-700/80 mb-2">Provide the exact information the AI should use to answer customer questions about pricing, shipping, or policies.</p>
+            <div class="mt-6 space-y-3 relative z-10">
+              <label class="block text-sm font-semibold text-[var(--color-text)]">Business Context (Rules & Knowledge base)</label>
+              <p class="text-xs text-[var(--color-text-secondary)] mb-2">Provide the exact information the AI should use to answer customer questions about pricing, shipping, or policies.</p>
               <textarea 
                 [(ngModel)]="account.businessContext" 
                 rows="8" 
-                class="block w-full rounded-xl border-indigo-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-4 bg-white"
+                class="block w-full rounded-xl border border-[var(--color-borders)] shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-4 bg-[var(--color-background)] text-[var(--color-text)] transition-colors"
                 placeholder="Example: We sell 3D printed models. PLA costs ₹8 per gram. Shipping takes 7 days..."
               ></textarea>
               <div class="flex justify-end pt-2">
