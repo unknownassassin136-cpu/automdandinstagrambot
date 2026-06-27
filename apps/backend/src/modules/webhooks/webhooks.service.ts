@@ -147,14 +147,14 @@ export class WebhooksService {
             });
             console.log(`[Webhooks] Sent AI DM Reply (${aiResult.action}) to ${senderId}`);
             await this.analyticsService.incrementUsage(internalAccount.userId as string, 'dm');
-            await this.analyticsService.logAction(internalAccount.id, 'ai_dm', 'dm', 'success');
+            await this.analyticsService.logAction(internalAccount.id, null, 'ai_dm', 'success');
           } else {
             console.log(`[Webhooks] AI decided not to reply (${aiResult.action}) to ${senderId}`);
-            await this.analyticsService.logAction(internalAccount.id, 'ai_dm', 'dm', aiResult.action);
+            await this.analyticsService.logAction(internalAccount.id, null, 'ai_dm', aiResult.action);
           }
         } catch (err: any) {
           console.error(`[Webhooks] AI DM reply failed:`, err.response?.data || err.message);
-          await this.analyticsService.logAction(internalAccount.id, 'ai_dm', 'dm', 'failed', err.message);
+          await this.analyticsService.logAction(internalAccount.id, null, 'ai_dm', 'failed', err.message);
         }
       }
 
