@@ -18,7 +18,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     totalAutomations: 0,
     repliesSent: 0,
     dmsSent: 0,
-    connectedAccounts: 0
+    connectedAccounts: 0,
+    aiRepliesSent: 0
   };
   
   recentActivity: any[] = [];
@@ -138,6 +139,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.chart?.update();
         this.cdr.detectChanges();
       }
+    });
+
+    // Fetch AI Stats
+    this.analyticsService.getAiStats().subscribe({
+      next: (aiData) => {
+        this.metrics.aiRepliesSent = aiData?.sent || 0;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Error fetching AI stats:', err)
     });
 
     // Fetch recent logs

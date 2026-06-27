@@ -7,8 +7,8 @@ import { eq, and } from 'drizzle-orm';
 export const SUBSCRIPTION_PLANS: Record<string, any> = {
   free: { limit: 10, maxAutomations: 3, aiAccess: false, aiDmLimit: 0, name: 'Free Plan' },
   plus: { limit: 20, maxAutomations: 5, aiAccess: false, aiDmLimit: 0, name: 'Plus Plan' },
-  pro: { limit: -1, maxAutomations: -1, aiAccess: true, aiDmLimit: 100, name: 'Pro Plan' }, // 100 AI DMs/month
-  ai: { limit: -1, maxAutomations: -1, aiAccess: true, aiDmLimit: -1, name: 'AI Plan' }, // Unlimited AI
+  pro: { limit: -1, maxAutomations: -1, aiAccess: false, aiDmLimit: 0, name: 'Pro Plan' }, // Unlimited automations, NO AI
+  ai_pro: { limit: -1, maxAutomations: -1, aiAccess: true, aiDmLimit: -1, name: 'AI Pro Plan' }, // Unlimited automations + AI
 };
 
 export class SubscriptionsService {

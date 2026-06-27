@@ -27,4 +27,16 @@ export class AnalyticsController {
       res.status(400).json({ error: err.message });
     }
   };
+
+  getAiStats = async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) throw new Error('Unauthorized');
+      const stats = await this.analyticsService.getAiStats(userId);
+      res.status(200).json(stats);
+    } catch (err: any) {
+      console.error('[AnalyticsController] getAiStats Error:', err);
+      res.status(400).json({ error: err.message });
+    }
+  };
 }

@@ -18,4 +18,8 @@ export class AnalyticsService {
   getRecentLogs(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/logs?limit=5`);
   }
+
+  getAiStats(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/ai`);
+  }
 }

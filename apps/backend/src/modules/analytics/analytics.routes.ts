@@ -9,3 +9,4 @@ analyticsRouter.use(authMiddleware);
 
 analyticsRouter.get('/dashboard', controller.getDashboardStats);
 analyticsRouter.get('/logs', controller.getRecentLogs);
+analyticsRouter.get('/ai', controller.getAiStats);

@@ -27,7 +27,8 @@ export class SettingsComponent implements OnInit {
   billingPlans = [
     { id: 'free', name: 'Free', price: '$0', features: ['1 Instagram Account', '3 Automation Rules', '10 Replies per automation'] },
     { id: 'plus', name: 'Plus', price: '$29/mo', features: ['1 Instagram Account', '5 Automation Rules', '20 Replies per automation'] },
-    { id: 'pro', name: 'Pro', price: '$99/mo', features: ['Unlimited Accounts', 'Unlimited Automations', 'Unlimited Replies'] }
+    { id: 'pro', name: 'Pro', price: '$99/mo', features: ['Unlimited Accounts', 'Unlimited Automations', 'Unlimited Replies'] },
+    { id: 'ai_pro', name: 'AI Pro', price: '$149/mo', features: ['Unlimited Automations', 'Unlimited Replies', 'AI Auto-Replies Enabled'] }
   ];
 
   sessions = [

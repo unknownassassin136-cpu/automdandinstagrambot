@@ -57,6 +57,34 @@ export class AnalyticsService {
     .limit(limit);
   }
 
+  async getAiStats(userId: string) {
+    const logs = await db.select({
+      status: automationLogs.status,
+      count: sql<number>`count(*)`
+    })
+    .from(automationLogs)
+    .innerJoin(connectedAccounts, eq(automationLogs.accountId, connectedAccounts.id))
+    .where(
+      and(
+        eq(connectedAccounts.userId, userId),
+        eq(automationLogs.actionType, 'ai_dm')
+      )
+    )
+    .groupBy(automationLogs.status);
+
+    let sent = 0;
+    let blocked = 0;
+    let failed = 0;
+
+    for (const log of logs) {
+      if (log.status === 'success') sent += Number(log.count);
+      else if (log.status === 'blocked') blocked += Number(log.count);
+      else failed += Number(log.count);
+    }
+
+    return { sent, blocked, failed, total: sent + blocked + failed };
+  }
+
   async incrementUsage(ruleId: string, type: 'reply' | 'dm') {
     const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
     
