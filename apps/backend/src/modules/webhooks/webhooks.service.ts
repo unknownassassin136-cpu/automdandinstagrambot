@@ -1,8 +1,10 @@
 import { WebhooksRepository } from './webhooks.repository';
 import { RulesRepository } from '../automations/rules.repository';
 import { AccountsRepository } from '../accounts/accounts.repository';
-import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+import { SubscriptionsService, SUBSCRIPTION_PLANS } from '../subscriptions/subscriptions.service';
 import { AnalyticsService } from '../analytics/analytics.service';
+import { AiService } from '../ai/ai.service';
+import { AI_CONFIG } from '../ai/ai.config';
 import crypto from 'crypto';
 import { env } from '../../config/env';
 import axios from 'axios';
@@ -14,7 +16,8 @@ export class WebhooksService {
     private rulesRepo: RulesRepository = new RulesRepository(),
     private accountsRepo: AccountsRepository = new AccountsRepository(),
     private subsService: SubscriptionsService = new SubscriptionsService(),
-    private analyticsService: AnalyticsService = new AnalyticsService()
+    private analyticsService: AnalyticsService = new AnalyticsService(),
+    private aiService: AiService = new AiService()
   ) {}
 
   verifySignature(signature: string, payload: Buffer): boolean {
@@ -86,42 +89,73 @@ export class WebhooksService {
         await this.webhooksRepo.logEvent(eventId, msgEvent, internalAccount.id);
         await this.webhooksRepo.markEventAsProcessed(eventId);
         
-        // We log the incoming DM above for Analytics, but we DO NOT evaluate rules 
-        // against it, and we DO NOT send any automated replies to incoming DMs.
-        // This prevents infinite bot loops and ensures the bot only triggers from comments.
-        /*
-        const finalRule = await this.matchRule(internalAccount.id, messageText, null);
+        // AI DM Auto-Reply
+        // Check if AI DM is enabled for this account
+        const aiDmEnabled = (internalAccount as any).aiDmEnabled;
+        if (!aiDmEnabled) {
+          console.log(`[Webhooks] AI DM disabled for account ${internalAccount.id}. Skipping.`);
+          continue;
+        }
+
+        // Check if the message is from a bot/automation (prevent infinite loops)
+        if (this.aiService.isLikelyBot(messageText)) {
+          console.log(`[Webhooks] Detected bot message from ${senderId}. Skipping AI reply.`);
+          continue;
+        }
+
+        // Check subscription plan for AI access
+        const billingStatus = await this.subsService.getBillingStatus(internalAccount.userId as string);
+        const planConfig = SUBSCRIPTION_PLANS[billingStatus.planId] || SUBSCRIPTION_PLANS['free'];
         
-        if (finalRule && finalRule.dmTemplateText) {
-          console.log(`[Webhooks] Matched Rule: ${finalRule.triggerKeyword || 'DEFAULT'} for DM: ${messageText}`);
+        if (!planConfig.aiAccess) {
+          console.log(`[Webhooks] Plan ${billingStatus.planId} has no AI access. Skipping.`);
+          continue;
+        }
 
-          // Check Subscription Limits
-          const billingStatus = await this.subsService.getBillingStatus(internalAccount.userId as string);
-          const totalUsage = (billingStatus.currentReplies || 0) + (billingStatus.currentDms || 0);
-          
-          if (billingStatus.monthlyLimit !== -1 && totalUsage >= billingStatus.monthlyLimit) {
-            console.warn(`[Webhooks] Limit Reached for user ${internalAccount.userId}. Skipping DM.`);
-            await this.analyticsService.logAction(internalAccount.id, finalRule.id as string, 'dm', 'failed', 'Subscription limit reached');
-            continue;
-          }
-
+        // Check AI DM rate limit
+        const aiDmCount = (billingStatus as any).aiDmCount || 0;
+        if (planConfig.aiDmLimit !== -1 && aiDmCount >= planConfig.aiDmLimit) {
+          console.warn(`[Webhooks] AI DM limit reached for user ${internalAccount.userId}. Sending limit message.`);
           try {
-            // Direct Instagram API for DM Replies
             await axios.post(`https://graph.instagram.com/v22.0/me/messages`, {
               recipient: { id: senderId },
-              message: { text: finalRule.dmTemplateText }
+              message: { text: AI_CONFIG.RATE_LIMIT_MESSAGE }
             }, {
               headers: { Authorization: `Bearer ${accessToken}` }
             });
-            console.log(`[Webhooks] Sent DM Reply to ${senderId}`);
-            await this.analyticsService.incrementUsage(internalAccount.userId as string, 'dm');
-            await this.analyticsService.logAction(internalAccount.id, finalRule.id as string, 'dm', 'success');
           } catch (err: any) {
-            console.error(`[Webhooks] Failed to send DM reply:`, err.response?.data || err.message);
-            await this.analyticsService.logAction(internalAccount.id, finalRule.id as string, 'dm', 'failed', err.message);
+            console.error(`[Webhooks] Failed to send rate limit message:`, err.response?.data || err.message);
           }
+          continue;
         }
-        */
+
+        // Generate AI reply using Gemini
+        try {
+          const businessContext = (internalAccount as any).businessContext || null;
+          const aiResult = await this.aiService.generateReply(
+            messageText,
+            [], // TODO: Fetch conversation history from Instagram API in future
+            businessContext
+          );
+
+          if (aiResult.reply) {
+            await axios.post(`https://graph.instagram.com/v22.0/me/messages`, {
+              recipient: { id: senderId },
+              message: { text: aiResult.reply }
+            }, {
+              headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            console.log(`[Webhooks] Sent AI DM Reply (${aiResult.action}) to ${senderId}`);
+            await this.analyticsService.incrementUsage(internalAccount.userId as string, 'dm');
+            await this.analyticsService.logAction(internalAccount.id, 'ai_dm', 'dm', 'success');
+          } else {
+            console.log(`[Webhooks] AI decided not to reply (${aiResult.action}) to ${senderId}`);
+            await this.analyticsService.logAction(internalAccount.id, 'ai_dm', 'dm', aiResult.action);
+          }
+        } catch (err: any) {
+          console.error(`[Webhooks] AI DM reply failed:`, err.response?.data || err.message);
+          await this.analyticsService.logAction(internalAccount.id, 'ai_dm', 'dm', 'failed', err.message);
+        }
       }
 
       // 2. Process Comments

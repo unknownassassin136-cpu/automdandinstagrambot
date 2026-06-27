@@ -13,6 +13,7 @@
     "backup": "ts-node src/scripts/backup.ts"
   },
   "dependencies": {
+    "@google/genai": "^2.10.0",
     "@ngrok/ngrok": "^1.4.1",
     "@supabase/supabase-js": "^2.45.0",
     "argon2": "^0.40.3",

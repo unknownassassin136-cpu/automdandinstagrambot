@@ -26,6 +26,9 @@ const envSchema = z.object({
   // Encryption
   ENCRYPTION_KEY: z.string().min(32, 'ENCRYPTION_KEY must be at least 32 bytes'),
 
+  // Gemini AI
+  GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
+
   // Ngrok
   NGROK_AUTHTOKEN: z.string().optional(),
   NGROK_DOMAIN: z.string().optional(),
