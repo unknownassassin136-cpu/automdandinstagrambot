@@ -13,16 +13,7 @@ export class AiService {
   constructor() {
     this.genai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
     this.safety = new AiSafety();
-
-    // Load default business context from file
-    try {
-      this.defaultContext = readFileSync(
-        join(__dirname, 'business-context.md'),
-        'utf-8'
-      );
-    } catch {
-      this.defaultContext = 'No business context available.';
-    }
+    this.defaultContext = 'No business context provided by the user. Please politely state that you cannot answer specific business questions until the owner configures the AI.';
   }
 
   /**
