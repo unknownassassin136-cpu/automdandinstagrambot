@@ -22,7 +22,7 @@ export class SubscriptionsController {
       const userId = req.user?.userId;
       const { planName } = req.body;
       if (!userId) throw new Error('Unauthorized');
-      if (!['free', 'plus', 'pro'].includes(planName)) throw new Error('Invalid plan name');
+      if (!['free', 'plus', 'pro', 'ai_pro'].includes(planName)) throw new Error('Invalid plan name');
 
       await this.subsService.handleSubscriptionUpdate(userId, planName);
       const status = await this.subsService.getBillingStatus(userId);

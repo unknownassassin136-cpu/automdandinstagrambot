@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AccountsService, ConnectedAccount } from '../../core/services/accounts.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
+import { SubscriptionsService } from '../../core/services/subscriptions.service';
 
 @Component({
   selector: 'app-ai-reply',
@@ -13,14 +14,36 @@ import { AnalyticsService } from '../../core/services/analytics.service';
 export class AiReplyComponent implements OnInit {
   private accountsService = inject(AccountsService);
   private analyticsService = inject(AnalyticsService);
+  private subsService = inject(SubscriptionsService);
   private cdr = inject(ChangeDetectorRef);
   
   connectedAccounts: ConnectedAccount[] = [];
   aiStats = { sent: 0, blocked: 0, failed: 0, total: 0 };
+  hasAiAccess: boolean = true;
+  isLoading: boolean = true;
 
   ngOnInit() {
-    this.loadAccounts();
-    this.loadAiStats();
+    this.checkBilling();
+  }
+
+  checkBilling() {
+    this.subsService.getBillingStatus().subscribe({
+      next: (status) => {
+        this.hasAiAccess = status.aiAccess === true;
+        if (this.hasAiAccess) {
+          this.loadAccounts();
+          this.loadAiStats();
+        } else {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load billing status', err);
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   loadAiStats() {
@@ -37,9 +60,14 @@ export class AiReplyComponent implements OnInit {
     this.accountsService.getAccounts().subscribe({
       next: (accounts) => {
         this.connectedAccounts = accounts;
+        this.isLoading = false;
         this.cdr.detectChanges();
       },
-      error: (err: any) => console.error('Failed to load accounts', err)
+      error: (err: any) => {
+        console.error('Failed to load accounts', err);
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 

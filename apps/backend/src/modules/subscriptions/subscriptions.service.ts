@@ -62,6 +62,7 @@ export class SubscriptionsService {
       currentReplies: totalReplies, // We can aggregate this later if needed for dashboard
       currentDms: totalDms,
       status: sub.status,
+      aiAccess: planConfig.aiAccess,
       expiresAt: sub.expiresAt
     };
   }
