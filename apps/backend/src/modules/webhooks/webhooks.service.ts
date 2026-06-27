@@ -107,8 +107,8 @@ export class WebhooksService {
         const billingStatus = await this.subsService.getBillingStatus(internalAccount.userId as string);
         const planConfig = SUBSCRIPTION_PLANS[billingStatus.planId] || SUBSCRIPTION_PLANS['free'];
         
-        if (!planConfig.aiAccess) {
-          console.log(`[Webhooks] Plan ${billingStatus.planId} has no AI access. Skipping.`);
+        if (!billingStatus.hasAiAddon) {
+          console.log(`[Webhooks] User has no AI Add-on. Skipping.`);
           continue;
         }
 
