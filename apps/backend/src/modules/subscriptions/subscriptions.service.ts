@@ -1,6 +1,6 @@
 import { SubscriptionsRepository } from './subscriptions.repository';
 import { db } from '../../database/db';
-import { usageTracking } from '../../database/schema';
+import { usageTracking, subscriptions } from '../../database/schema';
 import { eq, and } from 'drizzle-orm';
 
 // Subscription Tiers Configuration
