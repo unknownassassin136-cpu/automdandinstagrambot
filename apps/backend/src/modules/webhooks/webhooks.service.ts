@@ -113,8 +113,9 @@ export class WebhooksService {
         }
 
         // Check AI DM rate limit
+        const effectiveAiDmLimit = billingStatus.hasAiAddon ? -1 : planConfig.aiDmLimit;
         const aiDmCount = (billingStatus as any).aiDmCount || 0;
-        if (planConfig.aiDmLimit !== -1 && aiDmCount >= planConfig.aiDmLimit) {
+        if (effectiveAiDmLimit !== -1 && aiDmCount >= effectiveAiDmLimit) {
           console.warn(`[Webhooks] AI DM limit reached for user ${internalAccount.userId}. Sending limit message.`);
           try {
             await axios.post(`https://graph.instagram.com/v22.0/me/messages`, {
