@@ -146,7 +146,6 @@ export class WebhooksService {
               headers: { Authorization: `Bearer ${accessToken}` }
             });
             console.log(`[Webhooks] Sent AI DM Reply (${aiResult.action}) to ${senderId}`);
-            await this.analyticsService.incrementUsage(internalAccount.userId as string, 'dm');
             await this.analyticsService.logAction(internalAccount.id, null, 'ai_dm', 'success');
           } else {
             console.log(`[Webhooks] AI decided not to reply (${aiResult.action}) to ${senderId}`);
