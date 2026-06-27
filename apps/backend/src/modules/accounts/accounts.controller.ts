@@ -64,4 +64,36 @@ export class AccountsController {
       res.status(400).json({ error: err.message });
     }
   };
+
+  toggleAiDm = async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.userId;
+      if (!userId) throw new Error('Unauthorized');
+
+      const accountId = req.params.accountId;
+      const { enabled } = req.body;
+      if (typeof enabled !== 'boolean') throw new Error('enabled must be a boolean');
+
+      const account = await this.accountsService.toggleAiDm(userId, accountId, enabled);
+      res.status(200).json(account);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  };
+
+  updateBusinessContext = async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.userId;
+      if (!userId) throw new Error('Unauthorized');
+
+      const accountId = req.params.accountId;
+      const { businessContext } = req.body;
+      if (typeof businessContext !== 'string') throw new Error('businessContext must be a string');
+
+      const account = await this.accountsService.updateBusinessContext(userId, accountId, businessContext);
+      res.status(200).json(account);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  };
 }

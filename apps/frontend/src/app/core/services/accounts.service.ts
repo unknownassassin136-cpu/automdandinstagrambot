@@ -10,6 +10,8 @@ export interface ConnectedAccount {
   pageName: string;
   instagramUsername: string;
   isActive: boolean;
+  aiDmEnabled: boolean;
+  businessContext: string | null;
   createdAt: string;
 }
 
@@ -34,5 +36,13 @@ export class AccountsService {
 
   getMedia(accountId: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/${accountId}/media`);
+  }
+
+  toggleAiDm(accountId: string, enabled: boolean): Observable<ConnectedAccount> {
+    return this.http.patch<ConnectedAccount>(`${this.apiUrl}/${accountId}/ai-dm`, { enabled });
+  }
+
+  updateBusinessContext(accountId: string, businessContext: string): Observable<ConnectedAccount> {
+    return this.http.patch<ConnectedAccount>(`${this.apiUrl}/${accountId}/business-context`, { businessContext });
   }
 }

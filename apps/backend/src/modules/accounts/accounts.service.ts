@@ -153,4 +153,25 @@ export class AccountsService {
       throw new Error('Failed to fetch Instagram media');
     }
   }
+
+  async toggleAiDm(userId: string, accountId: string, enabled: boolean) {
+    const account = await this.accountsRepo.findById(accountId);
+    if (!account) throw new Error('Account not found');
+    if (account.userId !== userId) throw new Error('Unauthorized');
+
+    const updatedAccount = await this.accountsRepo.update(accountId, { aiDmEnabled: enabled });
+    const { encryptedPageAccessToken, ...safeAcc } = updatedAccount;
+    return safeAcc;
+  }
+
+  async updateBusinessContext(userId: string, accountId: string, context: string) {
+    const account = await this.accountsRepo.findById(accountId);
+    if (!account) throw new Error('Account not found');
+    if (account.userId !== userId) throw new Error('Unauthorized');
+
+    const updatedAccount = await this.accountsRepo.update(accountId, { businessContext: context });
+    const { encryptedPageAccessToken, ...safeAcc } = updatedAccount;
+    return safeAcc;
+  }
 }
+
