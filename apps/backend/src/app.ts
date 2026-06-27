@@ -39,12 +39,12 @@ app.use('/api/', limiter);
 
 // Body Parsing
 app.use(express.json({ 
-  limit: '10kb',
+  limit: '100kb',
   verify: (req: any, res, buf) => {
     req.rawBody = buf;
   }
 }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
 // Mount Routers
 app.use('/api/v1/auth', authRouter);
