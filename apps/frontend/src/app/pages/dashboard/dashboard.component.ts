@@ -109,6 +109,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       next: (data) => {
         console.log('Dashboard Stats Received:', data);
         this.metrics = {
+          ...this.metrics,
           totalAutomations: data?.totalAutomations ?? 0,
           repliesSent: data?.repliesSent ?? 0,
           dmsSent: data?.dmsSent ?? 0,
@@ -130,6 +131,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         console.error('Error fetching stats:', err);
         // Fallback to empty stats so it doesn't break
         this.metrics = {
+          ...this.metrics,
           totalAutomations: 0,
           repliesSent: 0,
           dmsSent: 0,
