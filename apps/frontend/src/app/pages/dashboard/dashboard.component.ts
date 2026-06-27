@@ -157,7 +157,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.recentActivity = (logs || []).map((log: any) => ({
           type: log.actionType.includes('comment') ? 'comment' : log.actionType.includes('dm') ? 'dm' : 'system',
           account: log.accountName || 'Unknown Account',
-          rule: log.status === 'success' ? 'Successful' : `Failed: ${log.errorMessage}`,
+          rule: log.status === 'success' ? 'Successful' : (log.status === 'blocked' ? 'Blocked' : `Failed: ${log.errorMessage || 'Unknown Error'}`),
           time: log.createdAt
         }));
         this.cdr.detectChanges();

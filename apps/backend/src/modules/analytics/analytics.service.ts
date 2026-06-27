@@ -48,7 +48,7 @@ export class AnalyticsService {
       status: automationLogs.status,
       errorMessage: automationLogs.errorMessage,
       createdAt: automationLogs.createdAt,
-      accountName: connectedAccounts.pageName,
+      accountName: connectedAccounts.instagramUsername,
     })
     .from(automationLogs)
     .innerJoin(connectedAccounts, eq(automationLogs.accountId, connectedAccounts.id))
