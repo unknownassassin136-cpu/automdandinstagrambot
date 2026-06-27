@@ -4,6 +4,13 @@
 const { execSync } = require('child_process');
 
 try {
+  console.log('🔄 [Pterodactyl] Pulling latest code from GitHub...');
+  execSync('git pull', { stdio: 'inherit' });
+} catch (err) {
+  console.error('⚠️ Git pull failed. Continuing...');
+}
+
+try {
   console.log('🔄 [Pterodactyl Bypass] Installing backend dependencies directly...');
   // Force install only the backend workspace with production dependencies
   execSync('npx --yes pnpm@9 install --filter backend --no-frozen-lockfile', { stdio: 'inherit' });
