@@ -2,16 +2,13 @@
  * AI DM Auto-Reply Configuration
  */
 export const AI_CONFIG = {
-  /** Gemini model to use (fast + cheap) */
-  GEMINI_MODEL: 'gemini-2.0-flash',
-
   /** Max messages from conversation history to include */
   MAX_CONVERSATION_HISTORY: 20,
 
   /** Max characters for AI response */
   MAX_RESPONSE_LENGTH: 300,
 
-  /** Max tokens for Gemini output */
+  /** Max tokens for output */
   MAX_OUTPUT_TOKENS: 150,
 
   /** Temperature for Gemini (0.0 = deterministic, 1.0 = creative) */

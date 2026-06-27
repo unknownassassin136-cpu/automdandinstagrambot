@@ -26,8 +26,10 @@ const envSchema = z.object({
   // Encryption
   ENCRYPTION_KEY: z.string().min(32, 'ENCRYPTION_KEY must be at least 32 bytes'),
 
-  // Gemini AI
-  GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
+  // AI Config (OpenAI-compatible)
+  AI_API_KEY: z.string().min(1, 'AI_API_KEY is required'),
+  AI_BASE_URL: z.string().url().default('https://api.openai.com/v1'),
+  AI_MODEL: z.string().default('gpt-4o-mini'),
 
   // Ngrok
   NGROK_AUTHTOKEN: z.string().optional(),

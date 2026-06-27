@@ -1,17 +1,18 @@
-import { GoogleGenAI } from '@google/genai';
+import OpenAI from 'openai';
 import { env } from '../../config/env';
 import { AI_CONFIG, SYSTEM_PROMPT_TEMPLATE } from './ai.config';
 import { AiSafety } from './ai.safety';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 
 export class AiService {
-  private genai: GoogleGenAI;
+  private openai: OpenAI;
   private safety: AiSafety;
   private defaultContext: string;
 
   constructor() {
-    this.genai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
+    this.openai = new OpenAI({
+      apiKey: env.AI_API_KEY,
+      baseURL: env.AI_BASE_URL
+    });
     this.safety = new AiSafety();
     this.defaultContext = 'No business context provided by the user. Please politely state that you cannot answer specific business questions until the owner configures the AI.';
   }
@@ -45,37 +46,36 @@ export class AiService {
     const businessContext = customContext || this.defaultContext;
     const systemPrompt = SYSTEM_PROMPT_TEMPLATE.replace('{context}', businessContext);
 
-    // Step 3: Build conversation history for Gemini
-    const contents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
+    // Step 3: Build conversation history for OpenAI
+    const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+      { role: 'system', content: systemPrompt }
+    ];
     
     // Add conversation history (last N messages)
     const recentHistory = conversationHistory.slice(-AI_CONFIG.MAX_CONVERSATION_HISTORY);
     for (const msg of recentHistory) {
-      contents.push({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.text }]
+      messages.push({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.text
       });
     }
 
     // Add the current incoming message
-    contents.push({
+    messages.push({
       role: 'user',
-      parts: [{ text: incomingMessage }]
+      content: incomingMessage
     });
 
-    // Step 4: Call Gemini API
+    // Step 4: Call OpenAI API
     try {
-      const response = await this.genai.models.generateContent({
-        model: AI_CONFIG.GEMINI_MODEL,
-        contents: contents,
-        config: {
-          systemInstruction: systemPrompt,
-          temperature: AI_CONFIG.TEMPERATURE,
-          maxOutputTokens: AI_CONFIG.MAX_OUTPUT_TOKENS,
-        }
+      const response = await this.openai.chat.completions.create({
+        model: env.AI_MODEL,
+        messages: messages,
+        temperature: AI_CONFIG.TEMPERATURE,
+        max_tokens: AI_CONFIG.MAX_OUTPUT_TOKENS,
       });
 
-      const replyText = response.text?.trim() || null;
+      const replyText = response.choices[0]?.message?.content?.trim() || null;
 
       if (!replyText) {
         return { reply: null, action: 'blocked' };
@@ -97,7 +97,7 @@ export class AiService {
       return { reply: finalReply, action: 'replied' };
 
     } catch (error: any) {
-      console.error('[AI Service] Gemini API error:', error.message);
+      console.error('[AI Service] OpenAI API error:', error.message || error);
       return { reply: null, action: 'blocked' };
     }
   }
