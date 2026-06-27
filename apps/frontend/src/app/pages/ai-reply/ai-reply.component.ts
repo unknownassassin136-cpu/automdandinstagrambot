@@ -29,7 +29,7 @@ export class AiReplyComponent implements OnInit {
   checkBilling() {
     this.subsService.getBillingStatus().subscribe({
       next: (status) => {
-        this.hasAiAccess = status.aiAccess === true;
+        this.hasAiAccess = status.hasAiAddon === true;
         if (this.hasAiAccess) {
           this.loadAccounts();
           this.loadAiStats();
