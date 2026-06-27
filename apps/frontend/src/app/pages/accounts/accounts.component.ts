@@ -1,13 +1,12 @@
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
 import { AccountsService, ConnectedAccount } from '../../core/services/accounts.service';
 
 @Component({
   selector: 'app-accounts',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './accounts.component.html',
 })
 export class AccountsComponent implements OnInit {
@@ -46,43 +45,6 @@ export class AccountsComponent implements OnInit {
           this.connectedAccounts = this.connectedAccounts.filter(acc => acc.id !== accountId);
         },
         error: (err: any) => console.error('Failed to disconnect account', err)
-      });
-    }
-  }
-
-  toggleAiDm(account: ConnectedAccount) {
-    this.accountsService.toggleAiDm(account.id, account.aiDmEnabled).subscribe({
-      next: (updated) => {
-        const index = this.connectedAccounts.findIndex(a => a.id === updated.id);
-        if (index !== -1) {
-          this.connectedAccounts[index] = updated;
-          this.cdr.detectChanges();
-        }
-      },
-      error: (err: any) => {
-        console.error('Failed to toggle AI DM', err);
-        // Revert toggle
-        account.aiDmEnabled = !account.aiDmEnabled;
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  saveBusinessContext(account: ConnectedAccount) {
-    if (account.businessContext) {
-      this.accountsService.updateBusinessContext(account.id, account.businessContext).subscribe({
-        next: (updated) => {
-          const index = this.connectedAccounts.findIndex(a => a.id === updated.id);
-          if (index !== -1) {
-            this.connectedAccounts[index] = updated;
-            alert('Business Context Saved Successfully!');
-            this.cdr.detectChanges();
-          }
-        },
-        error: (err: any) => {
-          console.error('Failed to update business context', err);
-          alert('Failed to save business context.');
-        }
       });
     }
   }

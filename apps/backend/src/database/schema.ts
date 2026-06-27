@@ -58,6 +58,8 @@ export const connectedAccounts = pgTable('connected_accounts', {
   encryptedPageAccessToken: text('encrypted_page_access_token').notNull(),
   tokenExpiresAt: timestamp('token_expires_at', { withTimezone: true }),
   isActive: boolean('is_active').default(true),
+  aiDmEnabled: boolean('ai_dm_enabled').default(false),
+  businessContext: text('business_context'),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });

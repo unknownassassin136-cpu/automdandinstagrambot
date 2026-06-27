@@ -9,7 +9,7 @@ async function run() {
     const currentMonth = '2026-06';
     
     console.log('Querying...');
-    const [usageResult] = await db.select({
+    const query = db.select({
       totalReplies: sql`sum(${usageTracking.replyCount})`,
       totalDms: sql`sum(${usageTracking.dmCount})`
     })
@@ -22,7 +22,7 @@ async function run() {
         eq(usageTracking.month, currentMonth)
       )
     );
-    console.log('Result:', usageResult);
+    console.log('Result:', query.toSQL());
   } catch (err) {
     console.error('Error:', err);
   }
