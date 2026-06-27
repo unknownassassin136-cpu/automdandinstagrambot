@@ -93,6 +93,7 @@ export class AccountsController {
       const account = await this.accountsService.updateBusinessContext(userId, accountId, businessContext);
       res.status(200).json(account);
     } catch (err: any) {
+      console.error('[AccountsController] Failed to update business context:', err);
       res.status(400).json({ error: err.message });
     }
   };

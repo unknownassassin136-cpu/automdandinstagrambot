@@ -12,4 +12,5 @@ accountsRouter.get('/', accountsController.list);
 accountsRouter.get('/:accountId/media', accountsController.getMedia);
 accountsRouter.patch('/:accountId/ai-dm', accountsController.toggleAiDm);
 accountsRouter.patch('/:accountId/business-context', accountsController.updateBusinessContext);
+accountsRouter.patch('/:accountId/context', accountsController.updateBusinessContext);
 accountsRouter.delete('/:accountId', accountsController.disconnect);
