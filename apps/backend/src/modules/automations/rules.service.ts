@@ -18,6 +18,11 @@ export class RulesService {
       throw new Error('Unauthorized or account not found');
     }
 
+    if (!data.targetMediaId) {
+      throw new Error('targetMediaId is required. Global automations are no longer supported.');
+    }
+
+
     // Check Subscription Limits
     const billingStatus = await this.subsService.getBillingStatus(userId);
     if (billingStatus.maxAutomations !== -1) {
@@ -56,6 +61,10 @@ export class RulesService {
     const account = await this.accountsRepo.findById(rule.accountId);
     if (!account || account.userId !== userId) {
       throw new Error('Unauthorized');
+    }
+
+    if (data.targetMediaId === null || data.targetMediaId === '') {
+      throw new Error('targetMediaId cannot be removed. Global automations are no longer supported.');
     }
 
     return await this.rulesRepo.update(ruleId, data);

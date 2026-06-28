@@ -26,7 +26,7 @@ export class BuilderComponent implements OnInit {
 
   builderForm = this.fb.group({
     name: ['', Validators.required],
-    targetMediaId: [''], // empty means any post
+    targetMediaId: ['', Validators.required],
     isDefaultRule: [false], // checkbox for default catch-all
     triggerType: ['comment_exact', Validators.required],
     keywords: [''],
@@ -84,6 +84,16 @@ export class BuilderComponent implements OnInit {
         }
       },
       error: (err) => console.error('Failed to fetch accounts', err)
+    });
+
+    // Read targetMediaId from query params if creating a new rule
+    this.route.queryParams.subscribe(params => {
+      if (params['targetMediaId']) {
+        this.builderForm.patchValue({ targetMediaId: params['targetMediaId'] });
+      } else if (!this.route.snapshot.paramMap.get('id')) {
+        // If not editing and no targetMediaId, redirect back to automations list
+        this.router.navigate(['/automations']);
+      }
     });
 
     // Update validators based on form state

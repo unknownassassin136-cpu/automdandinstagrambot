@@ -1,111 +1,70 @@
 <div class="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
   <div>
-    <h2 class="text-2xl font-bold text-[var(--color-text)]">Automations</h2>
+    <h2 class="text-2xl font-bold text-[var(--color-text)]">Automations Dashboard</h2>
     <p class="mt-1 text-sm text-[var(--color-text-secondary)]">
-      Manage your active Instagram rules and auto-reply templates.
+      Select a Reel or Post to set up an auto-reply automation.
     </p>
   </div>
-  <button routerLink="/automations/new" class="btn-primary flex items-center justify-center gap-2 w-full sm:w-auto">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-    </svg>
-    Create Automation
-  </button>
-</div>
-
-<!-- Automations Desktop Table -->
-<div class="card overflow-hidden hidden md:block">
-  <div class="overflow-x-auto">
-    <table class="w-full min-w-[800px] border-collapse">
-      <thead>
-        <tr>
-          <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">
-            Name & Trigger
-          </th>
-          <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">
-            Status
-          </th>
-          <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">
-            Replied
-          </th>
-          <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">
-            Last Active
-          </th>
-          <th scope="col" class="relative px-6 py-4">
-            <span class="sr-only">Edit</span>
-          </th>
-        </tr>
-      </thead>
-      <tbody class="bg-transparent">
-        <tr *ngFor="let item of automations" class="hover:shadow-neu-pressed transition-all duration-300 rounded-xl group">
-            <td class="px-6 py-5 whitespace-nowrap border-b border-black/5 first:rounded-l-xl last:rounded-r-xl">
-              <div class="flex items-center">
-                <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-xl bg-cards shadow-neu-flat text-[var(--color-primary)]">
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <div class="ml-4">
-                  <div class="text-sm font-medium text-[var(--color-text)]">Keyword: {{ item.triggerKeyword }}</div>
-                  <div class="text-sm text-[var(--color-text-secondary)]">Comments matching "{{ item.triggerKeyword }}"</div>
-                </div>
-              </div>
-            </td>
-            <td class="px-6 py-5 whitespace-nowrap border-b border-black/5">
-              <span [ngClass]="item.isActive ? 'bg-green-100/50 text-green-700' : 'bg-yellow-100/50 text-yellow-700'" 
-                    class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full capitalize shadow-neu-flat">
-                {{ item.isActive ? 'Active' : 'Paused' }}
-              </span>
-            </td>
-            <td class="px-6 py-5 whitespace-nowrap text-sm text-[var(--color-text-secondary)] border-b border-black/5">
-              -
-            </td>
-            <td class="px-6 py-5 whitespace-nowrap text-sm text-[var(--color-text-secondary)] border-b border-black/5">
-              Just now
-            </td>
-            <td class="px-6 py-5 whitespace-nowrap text-right text-sm font-medium border-b border-black/5">
-              <a [routerLink]="['/automations/edit', item.id]" class="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] mr-4">Edit</a>
-              <button (click)="item.id && deleteAutomation(item.id)" class="text-red-600 hover:text-red-900 focus:outline-none">Delete</button>
-            </td>
-          </tr>
-      </tbody>
-    </table>
+  
+  <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-3 text-sm text-indigo-800 font-medium">
+    Automations Used: {{ automationsCount }} / {{ maxAutomations }}
   </div>
 </div>
 
-<!-- Automations Mobile Cards -->
-<div class="md:hidden grid grid-cols-1 gap-6">
-  <div *ngFor="let item of automations" class="card flex flex-col gap-4 shadow-neu-flat hover:shadow-neu-pressed transition-all duration-300">
-    <div class="flex justify-between items-start">
-      <div class="flex items-center gap-4">
-        <div class="flex-shrink-0 h-12 w-12 flex items-center justify-center rounded-2xl bg-cards shadow-neu-pressed text-primary">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-        </div>
-        <div>
-          <h3 class="text-[15px] font-bold text-text">Keyword: {{ item.triggerKeyword }}</h3>
-          <p class="text-xs text-text/60 mt-0.5">Comments matching "{{ item.triggerKeyword }}"</p>
-        </div>
+<div *ngIf="loading" class="flex justify-center py-12">
+  <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+</div>
+
+<div *ngIf="!loading && mediaWithRules.length === 0" class="text-center py-12 text-gray-500">
+  No posts or reels found for this account.
+</div>
+
+<div *ngIf="!loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+  <div *ngFor="let item of mediaWithRules" class="card overflow-hidden flex flex-col group shadow-neu-flat hover:shadow-neu-pressed transition-all duration-300">
+    <!-- Media Image/Placeholder -->
+    <div class="aspect-square bg-gray-100 relative">
+      <img *ngIf="item.media.media_url" [src]="item.media.media_url" class="w-full h-full object-cover" alt="Media thumbnail">
+      <div *ngIf="!item.media.media_url" class="w-full h-full flex items-center justify-center text-gray-400">
+        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
       </div>
-    </div>
-    
-    <div class="flex justify-between items-center pt-3 border-t border-black/5">
-      <div class="flex gap-4 text-xs font-medium text-text/60">
-        <span class="flex items-center gap-1">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          Just now
-        </span>
+
+      <!-- Automation Badge Overlay -->
+      <div *ngIf="item.rule" class="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-md shadow">
+        Automation Set
       </div>
-      <span [ngClass]="item.isActive ? 'bg-green-100/50 text-green-700' : 'bg-yellow-100/50 text-yellow-700'" 
-            class="px-3 py-1 inline-flex text-xs font-bold rounded-full capitalize shadow-neu-flat">
-        {{ item.isActive ? 'Active' : 'Paused' }}
-      </span>
     </div>
 
-    <div class="flex gap-3 pt-3">
-      <a [routerLink]="['/automations/edit', item.id]" class="flex-1 btn-secondary text-center !py-2 !text-[13px] shadow-neu-flat hover:shadow-neu-pressed">Edit</a>
-      <button (click)="item.id && deleteAutomation(item.id)" class="flex-1 bg-cards text-danger font-bold rounded-xl shadow-neu-flat hover:shadow-neu-pressed transition-all duration-300 text-center !py-2 !text-[13px]">Delete</button>
+    <!-- Details -->
+    <div class="p-4 flex flex-col flex-1 border-t border-gray-100">
+      <p class="text-sm text-gray-800 line-clamp-2 mb-4 flex-1">
+        {{ item.media.caption || 'No caption available' }}
+      </p>
+      <div class="text-xs text-gray-500 mb-4">
+        {{ item.media.timestamp | date:'mediumDate' }} • {{ item.media.media_type }}
+      </div>
+
+      <!-- Actions -->
+      <div class="mt-auto">
+        <!-- If rule exists -->
+        <div *ngIf="item.rule" class="flex gap-2">
+          <a [routerLink]="['/automations/edit', item.rule.id]" class="flex-1 btn-secondary text-center !py-2 !text-[13px] shadow-neu-flat hover:shadow-neu-pressed">
+            Edit
+          </a>
+          <button (click)="item.rule.id && deleteAutomation(item.rule.id)" class="flex-1 bg-cards text-danger font-bold rounded-lg shadow-neu-flat hover:shadow-neu-pressed transition-all duration-300 text-center !py-2 !text-[13px]">
+            Delete
+          </button>
+        </div>
+
+        <!-- If no rule exists -->
+        <div *ngIf="!item.rule">
+          <a *ngIf="automationsCount < maxAutomations" [routerLink]="['/automations/new']" [queryParams]="{targetMediaId: item.media.id}" class="w-full block btn-primary text-center !py-2 !text-[13px] shadow-neu-flat hover:shadow-neu-pressed">
+            Create Automation
+          </a>
+          <button *ngIf="automationsCount >= maxAutomations" disabled class="w-full bg-gray-200 text-gray-500 font-bold rounded-lg px-4 py-2 text-[13px] cursor-not-allowed">
+            Plan Limit Reached
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
